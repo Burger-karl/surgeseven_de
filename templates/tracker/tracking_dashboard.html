@@ -1,0 +1,71 @@
+
+{% load static %}
+
+{% block title %}Truck Tracking - {{ truck.name }}{% endblock %}
+
+{% block main-content %}
+<div class="container mt-4">
+    <h2 class="text-center">Real-Time Tracking for {{ truck.name }}</h2>
+    <p><strong>Tracker ID:</strong> {{ truck.tracker_id }}</p>
+    <div id="map"></div>
+
+    <table class="table table-bordered mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Latitude</th>
+                <th>Longitude</th>
+                <th>Speed (km/h)</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="tracking-info">
+                <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
+                <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
+                <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
+                <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Leaflet.js for Map Rendering -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var map = L.map('map').setView([0, 0], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker = L.marker([0, 0]).addTo(map);
+
+    function fetchTrackingData() {
+        fetch("{% url 'fetch_tracking_data' truck.id %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.latitude && data.longitude) {
+                var lat = parseFloat(data.latitude);
+                var lon = parseFloat(data.longitude);
+                var speed = data.speed || "0";
+                var updated_time = data.last_updated || "-";
+
+                // Update Table Data
+                document.getElementById("latitude").innerText = lat;
+                document.getElementById("longitude").innerText = lon;
+                document.getElementById("speed").innerText = speed;
+                document.getElementById("last_updated").innerText = updated_time;
+
+                // Update Map Marker
+                marker.setLatLng([lat, lon]).bindPopup("Speed: " + speed + " km/h").openPopup();
+                map.setView([lat, lon], 12);
+            }
+        });
+    }
+
+    fetchTrackingData();
+    setInterval(fetchTrackingData, 60000); // Auto-refresh every 60 seconds
+});
+</script>
+{% endblock %}

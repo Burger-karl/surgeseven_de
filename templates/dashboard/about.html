@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}HomePage{% endblock title %}
+
+{% block banner-slider %}
+
+<section class="breadcrumbs">
+    <div class="container">
+
+      <div class="d-flex justify-content-between align-items-center">
+        <h2>About Us</h2>
+        <ol>
+          <li><a href="#">Home</a></li>
+          <li>About</li>
+        </ol>
+      </div>
+
+    </div>
+</section>
+
+
+<!-- ======= About Section ======= -->
+<section id="about1" class="about1">
+    <div class="container" data-aos="fade-up">
+
+        <div class="section-header">
+            <h2>About Us</h2>
+            <p>Learn More <span>About Us</span></p>
+        </div>
+
+        <div class="row gy-4">
+            <div class="col-lg-7 position-relative about-img" style="background-image: url({% static './assets/img/b4.jpg' %}) ;" data-aos="fade-up" data-aos-delay="150">
+                <div class="call-us position-absolute">
+                    <h4>Book a Ride</h4>
+                    <p>0814 393 2604</p>
+                </div>
+            </div>
+        
+            <div class="col-lg-5 d-flex align-items-end" data-aos="fade-up" data-aos-delay="300">
+                <div class="content ps-0 ps-lg-5">
+                    <p class="fst-italic">
+                        SurgeSeven is grade A car logistics with state of the art facilities that make quality cars readily available to the public.
+                    </p>
+                    
+                    <ul>
+                        <li><i class="bi bi-check2-all"></i> SurgeSeven provides different services to our customers.</li>
+                        <li><i class="bi bi-check2-all"></i> SurgeSeven is the number one car dealer in most countries.</li>
+                        <li><i class="bi bi-check2-all"></i> SurgeSeven provides different services to our customers. SurgeSeven is the number one car dealer in most countries of the world, we are global.</li>
+                    </ul>
+                    <p>
+                        SurgeSeven is grade A car dealership with state of the art facilities that make quality cars readily available to the public. We also provide other services ranging from car sale, car servicing and maintenance and also loan out quality cars for the customer use.
+                    </p>
+
+                    <div class="position-relative mt-4">
+                        <img src="{% static 'assets/img/service-44.jpg' %}" class="img-fluid" alt="">
+                        <a href="https://www.youtube.com/watch?v=LXb3EKWsInQ" class="glightbox play-btn"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </section><!-- End About Section -->
+
+{% endblock %}
+
+{% block information %}
+
+    <!-- ======= Why Us Section ======= -->
+    <section id="why-us1" class="why-us1 section-bg">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row gy-4">
+
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="why-box1">
+                        <h3>Why Choose SurgeSeven?</h3>
+                        <p>
+                            SurgeSeven is grade A car dealership with state of the art facilities that make quality cars readily available to the public.
+                            We also provide other services ranging from car sale, car servicing and maintenance and also loan out quality cars for the customer use.
+                            BurgAutos provides different services to our customers. BurgAutos is the number one car dealer in most countries of the world, we are global.
+                        </p>
+                        <div class="text-center">
+                            <a href="#" class="more-btn1">Learn More <i class="bx bx-chevron-right"></i></a>
+                        </div>
+                    </div>
+                </div><!-- End Why Box -->
+
+                <div class="col-lg-8 d-flex align-items-center">
+                    <div class="row gy-4">
+
+                        <div class="col-xl-4" data-aos="fade-up" data-aos-delay="200">
+                            <div class="icon-box d-flex flex-column justify-content-center align-items-center">
+                                <i class="bi bi-clipboard-data"></i>
+                                <h4>Global Reach For Customers</h4>
+                                <p>We have a global audience which stretch to different parts of the world, we are evolving.</p>
+                            </div>
+                        </div><!-- End Icon Box -->
+
+                        <div class="col-xl-4" data-aos="fade-up" data-aos-delay="300">
+                            <div class="icon-box d-flex flex-column justify-content-center align-items-center">
+                                <i class="bi bi-gem"></i>
+                                <h4>Automated Car Collection</h4>
+                                <p>We always evolve that's why we bring you the cars which are of the best quality and automated.</p>
+                            </div>
+                        </div><!-- End Icon Box -->
+
+                        <div class="col-xl-4" data-aos="fade-up" data-aos-delay="400">
+                            <div class="icon-box d-flex flex-column justify-content-center align-items-center">
+                                <i class="bi bi-inboxes"></i>
+                                <h4>Social Delivery Services</h4>
+                                <p>We are always a click away with our social media accounts we interact better with our customers.</p>
+                            </div>
+                        </div><!-- End Icon Box -->
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section><!-- End Why Us Section -->
+
+
+{% endblock %}
+
+{% block main-content %}
+
+    <!-- ======= Stats Counter Section ======= -->
+    <section id="stats-counter" class="stats-counter">
+        <div class="container" data-aos="zoom-out">
+
+            <div class="row gy-4">
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-item text-center w-100 h-100">
+                        <span data-purecounter-start="0" data-purecounter-end="232" data-purecounter-duration="1" class="purecounter"></span>
+                        <p>Bookings</p>
+                    </div>
+                </div><!-- End Stats Item -->
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-item text-center w-100 h-100">
+                        <span data-purecounter-start="0" data-purecounter-end="521" data-purecounter-duration="1" class="purecounter"></span>
+                        <p>Delivery</p>
+                    </div>
+                </div><!-- End Stats Item -->
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-item text-center w-100 h-100">
+                        <span data-purecounter-start="0" data-purecounter-end="1453" data-purecounter-duration="1" class="purecounter"></span>
+                        <p>Insurance Coverage</p>
+                    </div>
+                </div><!-- End Stats Item -->
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="stats-item text-center w-100 h-100">
+                        <span data-purecounter-start="0" data-purecounter-end="32" data-purecounter-duration="1" class="purecounter"></span>
+                        <p>Tracking</p>
+                    </div>
+                </div><!-- End Stats Item -->
+
+            </div>
+
+        </div>
+    </section><!-- End Stats Counter Section -->
+
+
+
+{% endblock %}

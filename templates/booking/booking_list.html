@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bookings List Page{% endblock title %}
+    
+{% block banner-slider %}
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Bookings</h2>
+                <ol>
+                    <li><a href="{% url 'client_home' %}">Home</a></li>
+                    <li>Bookings</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <h2 class="text-center">Your Pending <span class="text-warning">Bookings</span></h2>
+    <br>
+    <div class="row justify-content-center">
+        {% for booking in bookings %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h4 class="card-title text-warning"><strong>Booked the {{ booking.truck.name }} for delivery</strong></h4><br>
+                    <p class="card-text text-warning">
+                        <strong>Product: {{ booking.product_name }}</strong><br>
+                        <strong>Weight: {{ booking.product_weight }} kg</strong><br>
+                        <strong>Pickup: {{ booking.pickup_state }}</strong><br>
+                        <strong>Destination: {{ booking.destination_state }}</strong><br>
+                        <strong>Delivery Cost: &#8358;{{ booking.delivery_cost }}</strong><br>
+                        <strong>Insurance Payment: &#8358;{{ booking.insurance_payment }}</strong><br>
+                        <strong>Total Cost: &#8358;{{ booking.total_delivery_cost }}</strong>
+                    </p>
+                    {% if booking.delivery_cost > 0 and not booking.payment_completed %}
+                        <form action="{% url 'create-booking-payment' booking.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">Proceed to Payment</button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-secondary" disabled>Proceed to Payment</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center">
+            <p class="text-warning">No pending bookings found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

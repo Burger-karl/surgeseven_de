@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Notification Detail{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Notifications</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-warning">Notification Details</h2>
+            </div>
+            <div class="card-body">
+                <h4 class="text-warning">{{ notification.message }}</h4>
+                <p class="text-warning"><strong>Type:</strong> {{ notification.get_notification_type_display }}</p>
+                <p class="text-warning"><strong>Date:</strong> {{ notification.created_at|date:"F j, Y, g:i a" }}</p>
+                {% if notification.booking %}
+                    <p class="text-warning"><strong>Booking:</strong> {{ notification.booking }}</p>
+                {% endif %}
+                {% if notification.truck %}
+                    <p class="text-warning"><strong>Truck:</strong> {{ notification.truck }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+
+{% endblock %}

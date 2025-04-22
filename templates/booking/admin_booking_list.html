@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Bookings List Page{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Bookings</h2>
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Bookings</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <h2>All Client <span class="text-primary">Bookings</span></h2>
+    <br>
+    <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+            <tr>
+                <th class="text-warning">Booking ID</th>
+                <th class="text-warning">Client Username</th>
+                <th class="text-warning">Client Email</th>
+                <th class="text-warning">Subscription Plan</th>
+                <th class="text-warning">Truck</th>
+                <th class="text-warning">Product</th>
+                <th class="text-warning">Pickup Location</th>
+                <th class="text-warning">Destination</th>
+                <th class="text-warning">Booking Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings_data %}
+            <tr>
+                <td class="text-warning">{{ booking.booking_details.id }}</td>
+                <td class="text-warning">{{ booking.client_details.username }}</td>
+                <td class="text-warning">{{ booking.client_details.email }}</td>
+                <td class="text-warning">{{ booking.client_details.current_subscription_plan }}</td>
+                <td class="text-warning">{{ booking.booking_details.truck.name }}</td>
+                <td class="text-warning">{{ booking.booking_details.product_name }}</td>
+                <td class="text-warning">{{ booking.booking_details.pickup_state }}</td>
+                <td class="text-warning">{{ booking.booking_details.destination_state }}</td>
+                <td class="text-warning">{{ booking.booking_details.booked_at }}</td>
+                <td class="text-warning">{{ booking.booking_details.delivery_cost }}</td>
+                <td class="text-warning">{{ booking.booking_details.total_delivery_cost }}</td>
+                <td>
+                    <form method="POST" action="{% url 'admin-booking-list' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="booking_id" value="{{ booking.booking_details.id }}">
+                        <input type="number" name="delivery_cost" placeholder="Enter cost" required>
+                        <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

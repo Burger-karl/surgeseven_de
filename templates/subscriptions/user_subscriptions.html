@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Subscriptions{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>My Subscriptions</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="section-title">
+        <h2 class="text-warning">My Subscriptions</h2>
+    </div>
+
+    {% if request.GET.message %}
+        <div class="alert alert-success">
+            {{ request.GET.message }}
+        </div>
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% for subscription in subscriptions %}
+            <div class="card mb-4">
+                <div class="card-header text-center">
+                    <h3 class="text-warning"><strong>{{ subscription.plan.name }} Plan</strong></h3>
+                </div>
+                <div class="card-body">
+                    <h4>Subscription Details:</h4>
+                    <ul>
+                        <li class="text-warning"><strong>Cost: {{ subscription.plan.price }}</strong></li>
+                        <li class="text-warning"><strong>Start: {{ subscription.start_date }}</strong></li>
+                        <li class="text-warning"><strong>End: {{ subscription.end_date }}</strong></li>
+                        <li class="text-warning"><strong>Features:</strong></li>
+                            <ul>
+                                {% for feature in subscription.plan.features.all %}
+                                    <li class="text-warning"><strong>{{ feature.name }}</strong></li>
+                                {% empty %}
+                                    <li class="text-warning">No features available for this plan.</li>
+                                {% endfor %}
+                            </ul>
+                        <li class="text-warning"><strong>Status: {{ subscription.subscription_status }}</strong></li>
+                    </ul>
+
+
+                    <div class="text-center mt-3">
+                        <!-- Cancel Subscription Button -->
+                        <form action="{% url 'cancel-subscription' %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Cancel Subscription</button>
+                            <button type="submit" class="btn btn-success">Renew Subscription</button>
+                            <button type="submit" class="btn text-white btn-warning">Upgrade Subscription</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

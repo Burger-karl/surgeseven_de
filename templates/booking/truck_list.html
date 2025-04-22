@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Truck List{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Truck List</h2>
+            <ol>
+                <li><a href="{% url 'truck_owner_home' %}">Home</a></li>
+                <li>Truck List</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="row">
+        {% for truck in trucks %}
+        <div class="col-md-4">
+            <div class="card mt-5 mb-4">
+                <!-- Carousel for truck images -->
+                <div id="carousel{{ truck.id }}" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for image in truck.images.all %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ truck.name }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ truck.id }}" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ truck.id }}" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                <!-- End of Carousel -->
+
+                <div class="card-body">
+                    <h5 class="card-title text-warning"><strong>{{ truck.name }}</strong></h5>
+                    <p class="card-text text-warning"><strong>Weight Range: {{ truck.get_weight_range_display }}</strong></p>
+                    <p class="card-text text-warning"><strong>Location: {{ truck.state }}</strong></p>
+                    <p class="card-text text-warning"><strong>LGA: {{ truck.local_government }}</strong></p>
+                    <p class="card-text text-warning"><strong>Available: {{ truck.available|yesno:"Yes,No" }}</strong></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>{% endblock main-content %}

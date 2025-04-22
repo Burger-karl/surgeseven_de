@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block title %}Subscription Plans{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>Subscribe Plans</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+
+    <section id="specials" class="specials">
+        <div class="container" data-aos="fade-up">
+            <div class="section-title">
+                <h2>Features</h2>
+                <p>Check Our Subscription Features</p>
+            </div>
+            <div class="row" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-lg-3">
+                    <ul class="nav nav-tabs flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active show" data-bs-toggle="tab" href="#tab-1">Booking</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-2">Trucks</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-3">Shipping</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-4">Tracking</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-bs-toggle="tab" href="#tab-5">Insurance</a>
+                        </li>
+                    </ul>
+                </div>
+
+        
+                <div class="col-lg-9 mt-4 mt-lg-0">
+                    <div class="tab-content">
+                        <div class="tab-pane active show" id="tab-1">
+                            <div class="row">
+                                <div class="col-lg-8 details order-2 order-lg-1">
+                                    <h3>Booking System</h3>
+                                    <p class="fst-italic">Booking system is simply prepared from the softest and delicious crabs with flavoured seeds and banana chips making it all better.</p>
+                                    <p>SurgeSeven brings out the special delicacy of crab cake to soothe our ever demanding clients. Crab cake is new tried and tested delicacy by our ever creative chefs, we hope and pray our customers endeavour to try out this new delicacy and enjoy it. Crab cake is healthy and also enjoyed by everyone.</p>
+                                </div>
+                                
+                                <div class="col-lg-4 text-center order-1 order-lg-2">
+                                    <img src="{% static 'assets/img/features-2.jpg' %}" alt="" class="img-fluid">
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="tab-pane" id="tab-2">
+                            <div class="row">
+                                <div class="col-lg-8 details order-2 order-lg-1">
+                                    <h3>Truck Delivery</h3>
+                                    <p class="fst-italic">Truck Delivery is simply prepared from the softest and delicious crabs with flavoured seeds and banana chips making it all better.</p>
+                                    <p>SurgeSeven brings out the special delicacy of lobster bisque to soothe our ever demanding clients. Lobster Bisque is new tried and tested delicacy by our ever creative chefs, we hope and pray our customers endeavour to try out this new delicacy and enjoy it. Lobster Bisque is healthy and also enjoyed by everyone.</p>
+                                </div>
+                
+                                <div class="col-lg-4 text-center order-1 order-lg-2">
+                                    <img src="{% static 'assets/img/service-3.jpg' %}" alt="" class="img-fluid">
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="tab-pane" id="tab-3">
+                            <div class="row">
+                                <div class="col-lg-8 details order-2 order-lg-1">
+                                    <h3>Shipping</h3>
+                                    <p class="fst-italic">Shipping is simply prepared from the softest and delicious crabs with flavoured seeds and banana chips making it all better.</p>
+                                    <p>SurgeSeven brings out the special delicacy of tuscan grilled to soothe our ever demanding clients. Tuscan Grilled is new tried and tested delicacy by our ever creative chefs, we hope and pray our customers endeavour to try out this new delicacy and enjoy it. Tuscan Grilled is healthy and also enjoyed by everyone.</p>
+                                </div>
+                
+                                <div class="col-lg-4 text-center order-1 order-lg-2">
+                                    <img src="{% static 'assets/img/g5.jpg' %}" alt="" class="img-fluid">
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="tab-pane" id="tab-4">
+                            <div class="row">
+                                <div class="col-lg-8 details order-2 order-lg-1">
+                                    <h3>Tracking System</h3>
+                                    <p class="fst-italic">Tracking System is simply prepared from the softest and delicious crabs with flavoured seeds and banana chips making it all better.</p>
+                                    <p>SurgeSeven brings out the special delicacy of spinach salad to soothe our ever demanding clients. Spinach Salad is new tried and tested delicacy by our ever creative chefs, we hope and pray our customers endeavour to try out this new delicacy and enjoy it. Spinach Salad is healthy and also enjoyed by everyone.</p>
+                                </div>
+                
+                                <div class="col-lg-4 text-center order-1 order-lg-2">
+                                    <img src="{% static 'assets/img/testimonials-bg.jpg' %}" alt="" class="img-fluid">
+                                </div>
+                            </div>
+                        </div>
+            
+                        <div class="tab-pane" id="tab-5">
+                            <div class="row">
+                                <div class="col-lg-8 details order-2 order-lg-1">
+                                    <h3>Insurance Coverage</h3>
+                                    <p class="fst-italic">Insurance is simply prepared from the softest and delicious crabs with flavoured seeds and banana chips making it all better.</p>
+                                    <p>SurgeSeven brings out the special delicacy of akara and pap to soothe our ever demanding clients. Akara and pap is new tried and tested delicacy by our ever creative chefs, we hope and pray our customers endeavour to try out this new delicacy and enjoy it. Akara and pap is healthy and also enjoyed by everyone.</p>
+                                </div>
+                
+                                <div class="col-lg-4 text-center order-1 order-lg-2">
+                                    <img src="{% static 'assets/img/features-11.jpg' %}" alt="" class="img-fluid">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!--======== End Specials Section =========-->
+
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="section-title">
+        <h2>Subscribe</h2>
+        <p>Choose a plan that suits your needs</p>
+    </div>
+    <div class="row">
+        {% for plan in subscription_plans %}
+        <div class="col-lg-4 pricing-item bg-green text-white text-center p-0 mb-5 mx-auto">
+            <div class="pricing-title text-uppercase py-3 fs-5">{{ plan.name }}</div>
+            <div class="pricing-price fs-1 fw-bold"># {{ plan.price|floatformat:"0" }}</div>
+            <ul class="px-0">
+                <li>Booking System</li>
+                <li>Tracking System</li>
+                <li>Insurance Policy</li>
+                <li>{{ plan.duration|split:" "|first }}</li>
+            </ul>
+            <div class="pricing-footer pt-3 pb-5">
+                <a href="{% url 'subscribe' plan.id %}" class="btn bg-white text-green">Subscribe</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock main-content %}

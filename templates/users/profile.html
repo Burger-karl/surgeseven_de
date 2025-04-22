@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profile{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Profile</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container my-5">
+    <div class="row">
+        <h3>Welcome <span class="text-capitalize">{{ request.user.username }}</span></h3>
+
+        <div class="col-sm-2 border-end">
+            <ul class="list-unstyled">
+                <li class="d-grid"><a href="{% url 'profile-create' %}" class="btn btn-warning">Create a Profile</a></li>
+                <li class="d-grid"><a href="{% url 'profile' %}" class="btn btn-primary">Profile</a></li>
+                <li class="d-grid"><a href="{% url 'profile-update' %}" class="btn btn-success">Update Profile</a></li>
+            </ul>
+        </div>
+
+        <div class="col-sm-8 offset-sm-1">
+            {% if profile_exists %}
+                <div class="card m-2 text-center">
+                    <div class="card-body">
+                        <h3>Profile Details</h3>
+                        <p>
+                            {% if profile.profile_image %}
+                                <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="img-thumbnail rounded-circle" width="150" height="150">
+                            {% else %}
+                                <img src="{% static 'assets/img/surge-seven.png' %}" alt="Default Profile Image" class="img-thumbnail rounded-circle" width="150" height="150">
+                            {% endif %}
+                        </p>
+                        <p class="text-warning">Full Name: {{ profile.full_name }}</p>
+                        <p class="text-warning">Address: {{ profile.address }}</p>
+                        <p class="text-warning">Phone Number: {{ profile.phone_number }}</p>
+                        <p class="text-warning">State: {{ profile.state }}</p>
+                        <p class="text-center">
+                            <a href="{% url 'profile-update' %}" class="btn btn-success">Update Profile</a>
+                        </p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <p>You do not have a profile. Please <a href="{% url 'profile-create' %}" class="btn btn-warning">create a profile</a>.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

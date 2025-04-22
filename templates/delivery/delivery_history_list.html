@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Delivery History of {{ request.user.username }}{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5>Delivery History of <strong class="text-warning">{{ request.user.username }}</strong></h5>
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<section class="delivery-history py-4">
+    <div class="container">
+        
+        
+        {% if delivery_histories %}
+            <div class="row">
+                {% for history in delivery_histories %}
+                <div class="col-md-4 col-12 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center">
+                            <h5 class="text-warning card-title"><strong>Booking: {{ history.booking.product_name }}</strong></h5>
+                            <p class="text-warning card-text"><strong>Truck: {{ history.booking.truck.name }}</strong></p>
+                            <p class="text-warning card-text"><strong>Destination: {{ history.booking.destination_state }}</strong></p>
+                            <p class="text-warning card-text"><strong>Delivery Date: {{ history.delivery_date }}</strong></p>
+                            <p class="card-text">
+                                <strong class="text-warning">Status:</strong> 
+                                <span class="text-white bg-success badge {% if history.status == 'pending' %}badge-warning{% elif history.status == 'in_transit' %}badge-info{% elif history.status == 'delivered' %}badge-success{% endif %}">
+                                    {{ history.status|capfirst }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center">No delivery history found.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

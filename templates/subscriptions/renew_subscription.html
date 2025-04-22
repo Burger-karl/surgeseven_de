@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Renew Subscription{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>Renew Your Subscription</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="section-title">
+        <h2>Renew Subscription</h2>
+        <p>Confirm your subscription renewal details</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3 class="text-warning">{{ plan.name }} Plan</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-dark">Plan Details:</h4>
+                    <ul>
+                        <li class="text-warning">Cost: {{ plan.price }}</li>
+                        <li class="text-warning">New End Date: {{ subscription.end_date }}</li>
+                    </ul>
+                    <h4 class="text-dark">Features:</h4>
+                    <ul>
+                        {% for key, value in plan.features.items %}
+                            <li class="text-warning">{{ key }}: {{ value|yesno:"Enabled,Disabled" }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <form action="{% url 'create-subscription-payment' plan.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100">Proceed to Payment</button>
+                    </form>
+
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

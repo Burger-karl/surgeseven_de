@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Bookings with Updated Delivery Costs{% endblock title %}
+    
+{% block banner-slider %}
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Bookings</h2>
+                <ol>
+                    <li><a href="#">Home</a></li>
+                    <li>Bookings with Updated Delivery Costs</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block main-content %}
+<h1>Bookings with Updated Delivery Costs</h1>
+
+<br>
+
+{% if page_obj.object_list %}
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th class="text-warning">Booking ID</th>
+                <th class="text-warning">Client</th>
+                <th class="text-warning">Truck Name</th>
+                <th class="text-warning">Truck Owner</th>
+                <th class="text-warning">Delivery Cost</th>
+                <th class="text-warning">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in page_obj %}
+            <tr>
+                <td class="text-warning">{{ booking.id }}</td>
+                <td class="text-warning">{{ booking.client.username }}</td>
+                <td class="text-warning">{{ booking.truck.name }}</td>
+                <td class="text-warning">{{ booking.truck.owner.username }}</td>
+                <td class="text-warning">&#8358;{{ booking.delivery_cost }}</td>
+                <td>
+                    <a href="#" class="btn btn-info">View Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination mt-4">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+{% else %}
+    <p>No bookings with updated delivery costs available.</p>
+{% endif %}
+
+{% endblock %}

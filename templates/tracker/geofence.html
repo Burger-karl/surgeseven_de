@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Manage Geofences{% endblock %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <ol>
+            <li><a href="{% url 'admin_home' %}">Home</a></li>
+            <li>Geofence</li>
+        </ol>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-4">
+    <h2 class="text-center">Manage Geofences</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label>Geofence Name:</label>
+            <input type="text" name="name" required>
+        </div>
+        <div>
+            <label>Latitude:</label>
+            <input type="text" name="latitude" required>
+        </div>
+        <div>
+            <label>Longitude:</label>
+            <input type="text" name="longitude" required>
+        </div>
+        <div>
+            <label>Radius (meters):</label>
+            <input type="number" name="radius" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Create Geofence</button>
+    </form>
+
+    <h3 class="mt-4">Existing Geofences</h3>
+    <ul>
+        {% for geofence in geofences %}
+            <li>{{ geofence.name }} - {{ geofence.latitude }}, {{ geofence.longitude }} ({{ geofence.radius }}m)</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

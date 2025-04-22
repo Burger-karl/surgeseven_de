@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Bookings List Page{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Bookings</h2>
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Bookings</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <h2>All Placed <span class="text-warning">Bookings</span></h2>
+    <br>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th class="text-warning">Client</th>
+                <th class="text-warning">Truck</th>
+                <th class="text-warning">Truck Owner</th>
+                <th class="text-warning">Product Name</th>
+                <th class="text-warning">Product Weight</th>
+                <th class="text-warning">Pickup State</th>
+                <th class="text-warning">Destination State</th>
+                <th class="text-warning">Delivery Cost</th>
+                <th class="text-warning">Insurance Payment</th>
+                <th class="text-warning">Total Delivery Cost</th>
+                <th class="text-warning">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td class="text-warning">{{ booking.client.username }}</td>
+                <td class="text-warning">{{ booking.truck.name }}</td>
+                <td class="text-warning">{{ booking.truck.owner.username }}</td>
+                <td class="text-warning">{{ booking.product_name }}</td>
+                <td class="text-warning">{{ booking.get_product_weight_display }}</td>
+                <td class="text-warning">{{ booking.get_pickup_state_display }}</td>
+                <td class="text-warning">{{ booking.get_destination_state_display }}</td>
+                <td class="text-warning">
+                    {{ booking.delivery_cost|default:"Not Set" }}
+                </td>
+                <td class="text-warning">{{ booking.insurance_payment }}</td>
+                <td class="text-warning">{{ booking.total_delivery_cost }}</td>
+                <td>
+                    <form method="post" action="{% url 'admin-update-delivery-cost' booking.pk %}">
+                        {% csrf_token %}
+                        <input
+                            type="number"
+                            name="delivery_cost"
+                            class="form-control"
+                            placeholder="Enter Delivery Cost"
+                            required
+                        >
+                        <button type="submit" class="btn btn-primary mt-2">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        {% if bookings.has_previous %}
+        <a href="?page={{ bookings.previous_page_number }}" class="btn btn-secondary">Previous</a>
+        {% endif %}
+        <span>Page {{ bookings.number }} of {{ bookings.paginator.num_pages }}</span>
+        {% if bookings.has_next %}
+        <a href="?page={{ bookings.next_page_number }}" class="btn btn-secondary">Next</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

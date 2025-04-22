@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Truck Details{% endblock title %}
+    
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Truck</h2>
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Truck</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}   
+<br> 
+<div>
+    <h1>Truck Details: {{ truck.name }}</h1>
+</div>
+<br>
+<hr>
+
+<div class="card mb-4">
+    <div class="card-header text-warning">
+        <strong>Truck Owner:</strong> {{ truck.owner.username }}
+    </div>
+    <div class="card-body">
+        <p class="text-warning"><strong>Weight Range:</strong> {{ truck.get_weight_range_display }}</p>
+        <p class="text-warning"><strong>State:</strong> {{ truck.state }}</p>
+        <p class="text-warning"><strong>Available:</strong> {{ truck.available }}</p>
+        {% if images %}
+            {% for image in images %}
+                <img src="{{ image.image.url }}" alt="{{ truck.name }}" class="img-fluid" width="100">
+            {% endfor %}
+        {% else %}
+            <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
+        {% endif %}
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="tracker_id">Tracker ID:</label>
+        <input type="text" id="tracker_id" name="tracker_id" class="form-control" required>
+    </div>
+    <button type="submit" name="action" value="approve" class="btn btn-success">Approve Truck</button>
+    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Truck</button>
+    <a href="{% url 'admin_truck_list' %}" class="btn btn-secondary">Back to List</a>
+</form>
+
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Assign Tracker{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'admin_home' %}">Home</a></li>
+                <li>Assign Tracker</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-4">
+    <h2 class="text-center">Assign Tracker ID to Trucks</h2>
+
+    <table class="table table-bordered mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Truck Name</th>
+                <th>Owner</th>
+                <th>Weight Range</th>
+                <th>State</th>
+                <th>Tracker ID</th>
+                <th>Assign Tracker</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for truck in page_obj %}
+            <tr>
+                <td class="text-warning"><strong>{{ truck.name }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.owner.username }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.get_weight_range_display }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.get_state_display }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.tracker_id|default:"Not Assigned" }}</strong></td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="truck_id" value="{{ truck.id }}">
+                        <input type="text" name="tracker_id" class="form-control" required placeholder="Enter Tracker ID">
+                        <button type="submit" class="btn btn-primary mt-2">Assign</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo; First</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

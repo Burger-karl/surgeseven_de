@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Payment for {{ user_subscription.plan.name }}{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>Subscription Payment</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="section-title">
+        <h2 class="text-warning">Payment for {{ user_subscription.user.username }}</h2>
+        <p>Proceed to complete your payment</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3 class="text-warning">{{ user_subscription.plan.name }} Plan</h3>
+                </div>
+                <div class="card-body">
+                    <h4>Payment Details:</h4>
+                    <ul>
+                        <li class="text-warning">Cost: {{ user_subscription.plan.price }}</li>
+                        <li class="text-warning">Start: {{ user_subscription.start_date }}</li>
+                        <li class="text-warning">End: {{ user_subscription.end_date }}</li>
+                    </ul>
+                    
+                    <form id="payment-form">
+                        {% csrf_token %}
+                        <button type="button" class="btn btn-primary w-100" onclick="proceedToPayment('{{ authorization_url }}')">Proceed to Payment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function proceedToPayment(authorizationUrl) {
+        window.location.href = authorizationUrl;
+    }
+</script>
+{% endblock main-content %}

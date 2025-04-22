@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Remote Truck Control{% endblock %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <ol>
+            <li><a href="{% url 'admin_home' %}">Home</a></li>
+            <li>Remote Control</li>
+        </ol>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-4">
+    <h2 class="text-center">Remote Truck Control</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <table class="table table-bordered mt-4">
+        <thead class="table-dark">
+            <tr>
+                <th>Truck Name</th>
+                <th>Owner</th>
+                <th>Tracker ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for truck in trucks %}
+            <tr>
+                <td class=text-warning><strong>{{ truck.name }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.owner.username }}</strong></td>
+                <td class="text-warning"><strong>{{ truck.tracker_id }}</strong></td>
+                <td>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="truck_id" value="{{ truck.id }}">
+                        <button type="submit" name="action" value="lock" class="btn btn-danger">Lock</button>
+                        <button type="submit" name="action" value="unlock" class="btn btn-success">Unlock</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

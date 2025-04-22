@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Update Delivery Status{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Delivery Status Update</h2>
+            <ol>
+                <li><a href="{% url 'admin_home' %}">Home</a></li>
+                <li>Delivery Status Update</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block main-content %}
+<section class="container">
+    <h2>Update Delivery Status</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Update</button>
+    </form>
+</section>
+{% endblock %}
+

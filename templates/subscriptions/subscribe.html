@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Subscribe to {{ plan.name }}{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>Subscribe</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="section-title">
+        <h2>Subscribe to {{ plan.name }}</h2>
+        <p>Confirm your subscription details</p>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3 class="text-warning">{{ plan.name }} Plan</h3>
+                </div>
+                <div class="card-body">
+                    <h4 class="text-dark">Plan Details:</h4>
+                    <ul>
+                        <li class="text-warning">Cost: {{ plan.price }}</li>
+                        <li class="text-warning">Duration: {{ plan.duration }}</li>
+                        {% if plan.duration %}
+                            {% with plan.duration.days as days %}
+                                {% if days > 0 %}
+                                    {{ days }} day{{ days|pluralize }}
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                    </ul>
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    <form action="{% url 'create-subscription-payment' plan.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100">Confirm Subscription</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main-content %}

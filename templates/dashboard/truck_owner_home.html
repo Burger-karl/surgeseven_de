@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}HomePage{% endblock title %}
+    
+{% block banner-slider %}
+
+    <!-- ======= Hero  Section ======= -->
+    <section id="truckhero" class="mt-5 d-flex align-items-center">
+        <div class="container position-relative text-center text-lg-start" data-aos="zoom-in" data-aos-delay="100" >
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1>Welcome Truck Owners to <span>SurgeSeven</span></h1>
+                    <h2>Looking forward to delivering top notch transportation services!</h2>
+
+                    <div class="btns">
+                        <a href="{% url 'truck_create' %}" class="btn-menu animated fadeInUp scrollto">Create Truck</a>
+                        <a href="{% url 'truck_list' %}" class="btn-book animated fadeInUp scrollto">View Trucks</a>
+                    </div>
+                </div>
+        
+                <!-- <div class="col-lg-4 d-flex align-items-center justify-content-center position-relative" data-aos="zoom-in" data-aos-delay="200">
+                    <a href="https://www.youtube.com/watch?v=u6BOC7CDUTQ" class="glightbox play-btn"></a>
+                </div> -->
+
+            </div>
+        </div>
+    </section>
+    <!-- End Hero -->
+
+{% endblock %}
+
+
+{% block information %}
+
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row">
+                
+                <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content">
+                    <h3>We welcome all our Truck Owners to <span class="text-warning">SurgeSeven</span></h3>
+                    <p class="fst-italic">
+                        SurgeSeven Logistics is a cutting-edge haulage system revolutionizing agro commodity trades by providing a seamless platform for booking and transporting products.
+                    </p>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> We provide a fleet of well-maintained truck vehicles to ensure the safe and efficient transport of agro commodities.</li>
+                        <li><i class="bi bi-check-circle"></i> Goods transported through our platform are covered by comprehensive insurance, safeguarding against unforeseen circumstances.</li>
+                        <li><i class="bi bi-check-circle"></i> We also offer comprehensive insurance coverage for goods in transit, ensuring security for all parties involved.</li>
+                    </ul>
+    
+                </div>
+
+                <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="about-img">
+                        <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589414/service-details1_xrrsn0.jpg" alt="">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    <!--===== End About Section ======-->
+
+    
+
+
+{% endblock %}
+
+{% block main-content %}
+
+
+    <!-- ======= Trucks Section ======= -->
+    <section id="testimonials" class="testimonials section-bg">
+        <div class="container" data-aos="fade-up">
+
+            <div class="section-title">
+                <h2>Available Trucks</h2>
+                <p>Explore our fleet of available trucks</p>
+            </div>
+
+            <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
+                <div class="swiper-wrapper">
+
+                    {% for truck in available_trucks %}
+                    <div class="swiper-slide">
+                        <div class="truck-item">
+                            {% if truck.truck_images %}
+                                <img src="{{ truck.truck_images.0.image.url }}" class="truck-img" alt="Truck Image">
+                            {% else %}
+                                <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
+                            {% endif %}
+                            <h3>{{ truck.weight_range }}</h3>
+                        </div>
+                    </div><!-- End truck item -->
+                    {% endfor %}
+
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+
+        </div>
+    </section>
+    <!-- ======= End Trucks Section ======= -->
+
+
+    <!-- Affiliate Marketing -->
+    <section id="heropage" class="mt-5 d-flex align-items-center">
+        <div class="container position-relative text-center text-lg-start" data-aos="zoom-in" data-aos-delay="100" >
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1><span>SurgeSeven</span> Affiliate Marketing</h1>
+                    <h2>Share your referral link or code with friends.</h2>
+                    <h2>When they sign up using your link/code, you earn <strong>#1000</strong>.</h2>
+                    <h2>You also earn <strong>1.5%</strong> of every delivery cost they make.</h2>
+
+
+                    <!-- <div class="btns">
+                        <a href="{% url 'subscription-plans' %}" class="btn-menu animated fadeInUp scrollto">Subscribe</a>
+                        <a href="{% url 'available_trucks' %}" class="btn-book animated fadeInUp scrollto">Book a Truck</a>
+                    </div> -->
+                </div>
+        
+                <div class="col-lg-4 btns align-items-center justify-content-center position-relative" data-aos="zoom-in" data-aos-delay="200">
+                    <input type="text" class="form-control text-warning" id="referralCode" value="{{ referral_code }}" readonly>
+                    <button class="btn-book animated fadeInUp scrollto" onclick="copyReferralCode()">Copy</button>
+                
+                    <hr>
+                
+                    <input type="text" class="form-control text-warning" id="referralCode" value="{{ referral_link }}" readonly>
+                    <button class="btn-book animated fadeInUp scrollto" onclick="copyReferralLink()">Copy</button>
+                </div>
+            
+
+            </div>
+        </div>
+    </section>
+    <!-- End Section -->
+
+
+    <!-- ======= Menu Section ======= -->
+    <section id="menu" class="menu section-bg">
+        <div class="container" data-aos="fade-up">
+
+            <div class="section-title">
+                <h2>Trucks</h2>
+                <p>Trucks Weight Types</p>
+            </div>
+
+            <div class="row" data-aos="fade-up" data-aos-delay="100">
+                <div class="col-lg-12 d-flex justify-content-center">
+                    <ul id="menu-flters">
+                        <li data-filter="*" class="filter-active">Trucks</li>
+                        <li data-filter=".filter-starters">Light</li>
+                        <li data-filter=".filter-salads">Medium</li>
+                        <li data-filter=".filter-specialty">Heavy</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="row menu-container" data-aos="fade-up" data-aos-delay="200">
+
+                <div class="col-lg-6 menu-item filter-starters">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589241/service-3_p5irvr.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">VW Truck</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        LightWeight, 0kg - 1000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-specialty">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589263/service-44_awzwb4.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Benz</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        HeavyWeight, 5001kg - 10000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-starters">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589314/carousel-2_olrgfk.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">MAN</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        LightWeight, 0kg - 1000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-salads">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589332/service-1_rqcysa.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Boeing</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        MediumWeight, 1001kg - 5000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-specialty">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589081/b4_mhh0ta.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Mercedes</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        HeavyWeight, 5001kg - 10000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-starters">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589414/carousel-1_tfys3t.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Freight</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        LightWeight, 0kg - 1000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-salads">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589470/g2_mbrlf8.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Shipping</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        MediumWeight, 1001kg - 5000kg
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-salads">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589920/service-2_eksc6s.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Maritime</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        MediumWeight, 1001kg - 5000kg                        
+                    </div>
+                </div>
+
+                <div class="col-lg-6 menu-item filter-specialty">
+                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724590009/service-4_ufjba7.jpg" class="menu-img" alt="">
+                    <div class="menu-content">
+                        <a href="#">Bludge</a><span>Book online</span>
+                    </div>
+                    <div class="menu-ingredients">
+                        HeavyWeight, 5001kg - 10000kg
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+    <!--====== End Menu Section ======-->
+
+
+
+    
+
+{% endblock %}

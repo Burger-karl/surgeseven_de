@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Truck List Page{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Truck</h2>
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Truck</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<h1>Pending Truck Approvals</h1>
+
+<br>
+
+{% if page_obj %}
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Approve Selected Trucks</button>
+    </form>
+
+    <br>
+    <hr>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th class="text-warning">Truck Name</th>
+                <th class="text-warning">Owner</th>
+                <th class="text-warning">Weight Range</th>
+                <th class="text-warning">State</th>
+                <th class="text-warning">Image</th>
+                <th class="text-warning">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for truck in page_obj %}
+                    <tr>
+                        <td class="text-warning">{{ truck.name }}</td>
+                        <td class="text-warning">{{ truck.owner.username }}</td>
+                        <td class="text-warning">{{ truck.get_weight_range_display }}</td>
+                        <td class="text-warning">{{ truck.state }}</td>
+                        <td>
+                            {% if truck.images.all %}
+                                <img src="{{ truck.images.first.image.url }}" alt="{{ truck.name }}" width="100">
+                            {% else %}
+                                <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'admin_truck_detail' truck.id %}" class="btn btn-info">View Details</a>
+                        </td>
+                    </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+        </span>
+    </div>
+{% else %}
+    <p>No trucks pending approval.</p>
+{% endif %}
+
+{% endblock %}

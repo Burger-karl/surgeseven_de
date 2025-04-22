@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}HomePage{% endblock title %}
+    
+{% block banner-slider %}
+
+    <!-- ======= Hero  Section ======= -->
+    <section id="adminhero" class="mt-5 d-flex align-items-center">
+        <div class="container position-relative text-center text-lg-start" data-aos="zoom-in" data-aos-delay="100" >
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1>Admin welcomes all to <span>SurgeSeven</span></h1>
+                    <h2>Handling and Performing admin duties for easy client experience!</h2>
+
+                    <div class="btns">
+                        <a href="{% url 'admin_truck_list' %}" class="btn-menu animated fadeInUp scrollto">View all Trucks</a>
+                        <a href="{% url 'admin-booking-list' %}" class="btn-book animated fadeInUp scrollto">View all Bookings</a>
+                    </div>
+                </div>
+        
+                <!-- <div class="col-lg-4 d-flex align-items-center justify-content-center position-relative" data-aos="zoom-in" data-aos-delay="200">
+                    <a href="https://www.youtube.com/watch?v=u6BOC7CDUTQ" class="glightbox play-btn"></a>
+                </div> -->
+
+            </div>
+        </div>
+    </section>
+    <!-- End Hero -->
+
+{% endblock %}
+
+
+{% block information %}
+
+    <!-- ======= About Section ======= -->
+    <!-- <section id="about" class="about">
+        <div class="container" data-aos="fade-up">
+
+            <div class="row">
+                
+                <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content">
+                    <h3>We welcome all our Truck Owners to <span class="text-warning">SurgeSeven</span></h3>
+                    <p class="fst-italic">
+                        SurgeSeven Logistics is a cutting-edge haulage system revolutionizing agro commodity trades by providing a seamless platform for booking and transporting products.
+                    </p>
+                    <ul>
+                        <li><i class="bi bi-check-circle"></i> We provide a fleet of well-maintained truck vehicles to ensure the safe and efficient transport of agro commodities.</li>
+                        <li><i class="bi bi-check-circle"></i> Goods transported through our platform are covered by comprehensive insurance, safeguarding against unforeseen circumstances.</li>
+                        <li><i class="bi bi-check-circle"></i> We also offer comprehensive insurance coverage for goods in transit, ensuring security for all parties involved.</li>
+                    </ul>
+    
+                </div>
+
+                <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="about-img">
+                        <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589414/service-details1_xrrsn0.jpg" alt="">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section> -->
+
+
+    <section id="adminabout" class="adminabout">
+        <div class="container" data-aos="fade-up">
+  
+            <div class="section-header">
+                <h2>Admin</h2>
+                <p>Learn More <span>Admin Duties</span></p>
+            </div>
+  
+            <div class="row gy-4">
+                <div class="col-lg-7 position-relative about-img"  data-aos="fade-up" data-aos-delay="150">
+                    <div class="call-us position-absolute">
+                        <h4 class="text-warning">Surge Seven</h4>
+                        <p class="text-warning">0701 888 4096</p>
+                    </div>
+                </div>
+            
+                <div class="col-lg-5 d-flex align-items-end" data-aos="fade-up" data-aos-delay="300">
+                    <div class="content ps-0 ps-lg-5">
+                        <p class="fst-italic">
+                            Surge Seven Logistics facilitates the easy transportation of products and also encourages easy access to quality trucks for clients.
+                        </p>
+                        
+                        <ul>
+                            <li><i class="bi bi-check2-all"></i> Admin is expected to make quality trucks available after inspection.</li>
+                            <li><i class="bi bi-check2-all"></i> Admin is expected to update delivery cost of bookings made based on distance.</li>
+                            <li><i class="bi bi-check2-all"></i> Surge Seven Logistics admin is expected to facilitate the easy and seamless updating of quality trucks and delivery cost of bookings and also ensuring easy payment and delivery.</li>
+                        </ul>
+                        <p>
+                            Surge Seven Logistics Admin also help to facilitate the maintenance and imbibing of live tracking system in our quality trucks to aid transparency when in transit and also clients and truck owners peace of mind.
+                        </p>
+  
+                        <div class="position-relative mt-4">
+                            <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589414/service-details1_xrrsn0.jpg" class="img-fluid" alt="">
+                            <!-- <a href="https://www.youtube.com/watch?v=LXb3EKWsInQ" class="glightbox play-btn"></a> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+  
+        </div>
+    </section>
+    <!--===== End About Section ======-->
+
+    
+
+
+{% endblock %}
+

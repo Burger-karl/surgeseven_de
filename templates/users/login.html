@@ -1,0 +1,48 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block title %}Login{% endblock title %}
+
+{% block header %}
+Login to your <span class="text-warning">SurgeSeven</span> Account
+{% endblock header %}
+    
+{% block content %}
+
+    <div class="p-4 p-md-5 border rounded-3 bg-dark">
+        <div>
+            <div>
+                
+                <form action="" method="POST" novalidate>
+                    <h3>Login</h3>
+                    
+                    {% csrf_token %}
+                    {{ form.email.label_tag }} {{ form.email }} <small class="text-danger">{{ form.email.errors|striptags }}</small><br>
+                    {{ form.password.label_tag }} {{ form.password }} <small class="text-danger">{{ form.password.errors|striptags }}</small><br>
+                
+                    <small><a href="{% url 'forgot-password' %}">Forgot Password ?</a></small>
+                    <br>
+                    <input type="submit" value="Login" class="btn text-white btn-warning"> <br>
+                    <div class="text-center text-primary fw-bold">
+                        <small class="text-white">New User? <a href="{% url 'register' %}" class="text-warning">Create an Account</a></small>
+                    </div>
+                
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <p class="alert alert-danger my-3">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                
+                    {% if messages %}
+                        {% for msg in messages %}
+                            <div class="alert alert-{{ msg.tags }}" role="alert">
+                                {{ msg }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

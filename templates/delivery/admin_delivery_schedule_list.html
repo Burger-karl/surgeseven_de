@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Delivery Schedule List{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Delivery Schedules</h2>
+            <ol>
+                <li><a href="{% url 'admin_home' %}">Home</a></li>
+                <li>Delivery Schedules of Clients</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+{% block main-content %}
+<section class="container">
+    <h2>Delivery Schedules</h2>
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th class="text-warning">Product Name</th>
+                <th class="text-warning">Client</th>
+                <th class="text-warning">Truck Name</th>
+                <th class="text-warning">Scheduled Date</th>
+                <th class="text-warning">Status</th>
+                <th class="text-warning">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for schedule in delivery_schedules %}
+            <tr>
+                <td class="text-warning">{{ schedule.booking.product_name }}</td>
+                <td class="text-warning">{{ schedule.client.username }}</td>
+                <td class="text-warning">{{ schedule.booking.truck.name }}</td>
+                <td class="text-warning">{{ schedule.scheduled_date }}</td>
+                <td class="text-warning">{{ schedule.status }}</td>
+                <td>
+                    <a href="{% url 'update_delivery_status' schedule.pk %}" class="btn btn-primary">Update Status</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

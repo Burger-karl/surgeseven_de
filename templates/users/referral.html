@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title%}Referral{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Referrals</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="p-4 p-md-5 border rounded-3 bg-dark">
+    <h3 class="text-warning">Your Referral Link</h3>
+    <p class="text-white">Share your referral link with friends and earn rewards!</p>
+
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="referralLink" value="{{ referral_link }}" readonly>
+        <button class="btn btn-outline-warning" onclick="copyReferralLink()">Copy Link</button>
+    </div>
+
+    <h3 class="text-warning mt-4">Your Referral Code</h3>
+    <p class="text-white">You can also share your referral code:</p>
+
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="referralCode" value="{{ referral_code }}" readonly>
+        <button class="btn btn-outline-warning" onclick="copyReferralCode()">Copy Code</button>
+    </div>
+
+    <h3 class="text-warning mt-4">How It Works</h3>
+    <ul class="text-white">
+        <li>Share your referral link or code with friends.</li>
+        <li>When they sign up using your link/code, you earn <strong>#1000</strong>.</li>
+        <li>You also earn <strong>1.5%</strong> of every delivery cost they make.</li>
+    </ul>
+</div>
+
+<script>
+    function copyReferralLink() {
+        const referralLink = document.getElementById('referralLink');
+        referralLink.select();
+        document.execCommand('copy');
+        alert('Referral link copied to clipboard!');
+    }
+
+    function copyReferralCode() {
+        const referralCode = document.getElementById('referralCode');
+        referralCode.select();
+        document.execCommand('copy');
+        alert('Referral code copied to clipboard!');
+    }
+</script>
+{% endblock main-content %}

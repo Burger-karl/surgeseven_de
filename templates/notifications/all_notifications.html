@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}All Notifications{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Notifications</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <h2>All Notifications</h2>
+    <div class="list-group">
+        {% for notification in notifications %}
+            <a href="{% url 'notification_detail' notification.id %}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ notification.message }}</h5>
+                    <small>{{ notification.created_at|timesince }} ago</small>
+                </div>
+                <p class="mb-1">Type: {{ notification.get_notification_type_display }}</p>
+            </a>
+        {% empty %}
+            <p>No notifications found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

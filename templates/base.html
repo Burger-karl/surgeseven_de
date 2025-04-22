@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>Surge Seven</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <link href="{% static 'assets/img/surge-seven1.png' %}" rel="icon">
+  <link href="{% static 'assets/img/surge-seven1.png' %}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'assets/vendor/animate.css/animate.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <link href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"> -->
+
+
+  <!-- Template Main CSS File -->
+  <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
+
+  
+</head>
+
+<body>
+    <!-- ======= Top Bar ======= -->
+    <div id="topbar" class="d-flex align-items-center fixed-top">
+        <div class="container d-flex justify-content-center justify-content-md-between">
+
+            <div class="contact-info d-flex align-items-center">
+                <i class="bi bi-phone d-flex align-items-center"><span>+234 701 888 4096</span></i>
+                <i class="bi bi-clock d-flex align-items-center ms-4"><span> Mon-Sat: 8AM - 8PM</span></i>
+            </div>
+
+            <div class="languages d-none d-md-flex align-items-center">
+                <ul>
+                    <li>En</li>
+                    <li><a href="#">De</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!-- ======= end of top bar ====== -->
+
+    <!-- ======= Header ======= -->
+    <header id="header" class="fixed-top d-flex align-items-center">
+        <div class="container-fluid container-xl d-flex align-items-center justify-content-lg-between">
+
+            <!-- <h1 class="logo me-auto me-lg-0"><a href="index.html">Burger</a></h1> -->
+            <!-- Uncomment below if you prefer to use an image logo -->
+            <a href="#" class="logo me-auto me-lg-0"><img src="{% static 'assets/img/surge-seven-3.png' %}" alt="" class="img-fluid"></a>
+
+            <!-- Notifications Icon (Mobile) - Visible only on mobile -->
+            <div class="d-lg-none mobile-notifications">
+                <a class="nav-icon position-relative" href="#" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell"></i>
+                    <span class="badge bg-primary badge-number position-absolute top-0 start-100 translate-middle">{{ unread_notifications_count }}</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications mobile-notifications-dropdown">
+                    <li class="dropdown-header">
+                        You have {{ unread_notifications_count }} new notifications
+                        <a href="{% url 'mark_all_notifications_as_read' %}"><span class="badge rounded-pill bg-primary p-2 ms-2">Mark all as read</span></a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% for notification in notifications %}
+                        <li class="notification-item">
+                            <a href="{% url 'notification_detail' notification.id %}" class="d-flex">
+                                <div>
+                                    <small>{{ notification.message }}</small>
+                                    <p>{{ notification.created_at|timesince }} ago</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                    {% endfor %}
+                    <li class="dropdown-footer">
+                        <a href="{% url 'all_notifications' %}">View all notifications</a>
+                    </li>
+                </ul>
+            </div>
+                    
+            <nav id="navbar" class="navbar order-last order-lg-0">
+                
+                <ul>
+                    <li class="nav-item dropdown d-none d-lg-block">
+                        <a class="nav-link nav-icon position-relative" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            <span class="badge bg-primary badge-number position-absolute top-0 start-100 translate-middle">{{ unread_notifications_count }}</span>
+                        </a>
+                        <!-- Notification Dropdown -->
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
+                            <li class="dropdown-header">
+                                You have {{ unread_notifications_count }} new notifications
+                                <a href="{% url 'mark_all_notifications_as_read' %}"><span class="badge rounded-pill bg-primary p-2 ms-2">Mark all as read</span></a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for notification in notifications %}
+                                <li class="notification-item">
+                                    <a href="{% url 'notification_detail' notification.id %}" class="d-flex">
+                                        <div>
+                                            <small>{{ notification.message }}</small>
+                                            <p>{{ notification.created_at|timesince }} ago</p>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            {% endfor %}
+                            <li class="dropdown-footer">
+                                <a href="{% url 'all_notifications' %}">View all notifications</a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    {% if request.user.user_type == 'client' %}
+
+                    <li><a class="nav-link scrollto active" href="{% url 'client_home' %}">Home</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'about' %}">About</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Bookings</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'available_trucks' %}" class="dropdown-item">Create Booking</a></li>
+                            <li><a href="{% url 'booking_list' %}" class="dropdown-item">My Bookings</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Delivery</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'active_deliveries' %}" class="dropdown-item">Active Delivery</a></li>
+                            <li><a href="{% url 'delivery_history' %}" class="dropdown-item">Delivery History</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Subscriptions</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'user-subscriptions' %}" class="dropdown-item">My Subscriptions</a></li>
+                            <li><a href="{% url 'subscription-plans' %}" class="dropdown-item">Subscribe</a></li>
+                            <li><a href="{% url 'referral' %}" class="dropdown-item">Referral</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ request.user.username }}</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
+                            <li><a href="{% url 'profile-create' %}" class="dropdown-item">Profile</a></li>
+                            <li><a href="{% url 'client_dashboard' %}" class="dropdown-item">My Dashboard</a></li>
+                        </ul>
+                        
+                    </li>
+
+                    {% with request.user.booking_set.last as booking %}
+                        {% if booking and booking.truck.tracker_id %}
+                            <li><a href="{% url 'tracking_dashboard' booking.truck.id %}">Track My Delivery</a></li>
+                        {% endif %}
+                    {% endwith %}
+
+                    {% elif request.user.user_type == 'truck_owner' %}
+                    
+                    <li><a class="nav-link scrollto active" href="{% url 'truck_owner_home' %}">Home</a></li>
+                    <li><a class="nav-link scrollto" href="{% url 'about' %}">About</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Trucks</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'truck_create' %}" class="dropdown-item">Truck Upload</a></li>
+                            <li><a href="{% url 'truck_list' %}" class="dropdown-item">Truck List</a></li>
+                            <li><a href="{% url 'referral' %}" class="dropdown-item">Referral</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ request.user.username }}</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
+                            <li><a href="{% url 'profile-create' %}" class="dropdown-item">Profile</a></li>
+                            <li><a href="{% url 'truck_owner_dashboard' %}" class="dropdown-item">My Dashboard</a></li>
+                        </ul>
+                    </li>
+                    
+                    {% with user.truck_set.last as truck %}
+                        {% if truck and truck.tracker_id %}
+                            <li><a href="#">Track My Truck</a></li>
+                        {% endif %}
+                    {% endwith %}
+                
+
+                    {% elif request.user.user_type == 'admin' %}
+                    
+                    <li><a class="nav-link scrollto active" href="{% url 'admin_home' %}">Home</a></li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Trucks</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'admin_truck_list' %}" class="dropdown-item">Uploaded Trucks</a></li>
+                            <li><a href="{% url 'admin-booking-list' %}" class="dropdown-item">Bookings</a></li>
+                            <li><a href="{% url 'updated_cost_booking_list' %}" class="dropdown-item">Updated Bookings</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Deliveries</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'admin_delivery_schedule_list' %}" class="dropdown-item">Delivery Schedules</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ request.user.username }}</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
+                            <li><a href="{% url 'profile-create' %}" class="dropdown-item">Profile</a></li>
+                            
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Tracking</a>
+                        <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
+                            <li><a href="{% url 'assign-tracker' %}" class="dropdown-item">Assign Tracker</a></li>
+                            <li><a href="{% url 'remote-control' %}" class="dropdown-item">Remote Control</a></li>
+                            <li><a href="{% url 'geofence' %}" class="dropdown-item">Geofence</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    
+                                        
+                </ul>
+    
+                
+                <i class="bi bi-list mobile-nav-toggle"></i>
+
+            </nav><!-- .navbar -->
+            <!-- <a href="">
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="book-a-table-btn dark scrollto d-none d-lg-flex" type="submit">Logout</button>
+                </form>
+            </a> -->
+            
+            <!-- <a href="{% url 'login' %}" class="book-a-table-btn scrollto d-none d-lg-flex">Login</a> -->
+            
+        </div>
+    </header>
+    <!--======== End Header =======-->
+
+    <div class="container mt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+
+    <main id="main">
+
+    
+        {% block banner-slider %}{% endblock banner-slider %}
+        {% block information %}{% endblock information %}    
+        {% block main-content %}{% endblock main-content %}
+    
+    
+    </main>
+
+
+
+
+
+
+
+    <!-- ======= Footer ======= -->
+    <footer id="footer">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-info">
+                            <h3>SurgeSeven</h3>
+                            <p>
+                                Business Throne Plaza <br>
+                                Joseph Gomwalk ST Gudu, Abuja.<br><br>
+                                <strong>Phone:</strong> +234 701 888 4096<br>
+                                <strong>Email:</strong> surgesevens@gmail.com<br>
+                            </p>
+                            <div class="social-links mt-3">
+                                <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+                                <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
+                                <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
+                                <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 footer-links">
+                        <h4>Useful Links</h4>
+                        <ul>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Home</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">About us</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Privacy policy</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 footer-links">
+                        <h4>Our Services</h4>
+                        <ul>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Booking</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Subscribe</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="#">Trucks</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 footer-newsletter">
+                        <h4>Our Newsletter</h4>
+                        <p>Subscribe to our Newsletter and get firsthand information about SurgeSeven.</p>
+                        <form action="" method="post">
+                            <input type="email" name="email"><input type="submit" value="Subscribe">
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="copyright">
+                &copy; Copyright <strong><span>SurgeSeven</span></strong>. All Rights Reserved
+            </div>
+            <div class="credits">
+                Designed by <a href="#">Charles</a>
+            </div>
+        </div>
+    </footer>
+    <!--====== End Footer =======-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="preloader"></div>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            let alertElement = document.querySelector('.alert');
+            if (alertElement) {
+                let alertInstance = new bootstrap.Alert(alertElement);
+                alertInstance.close();
+            }
+        }, 5000); // 5000 milliseconds = 5 seconds
+
+        
+
+        // Initialize Bootstrap dropdowns
+        var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+        var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+        return new bootstrap.Dropdown(dropdownToggleEl)
+        })
+        
+        // Mobile notifications toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileNotificationsToggle = document.getElementById('mobileNotificationsToggle');
+            if (mobileNotificationsToggle) {
+                mobileNotificationsToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.nextElementSibling;
+                    dropdown.classList.toggle('show');
+                    
+                    // Close when clicking outside
+                    document.addEventListener('click', function closeDropdown(e) {
+                        if (!dropdown.contains(e.target) && e.target !== mobileNotificationsToggle) {
+                            dropdown.classList.remove('show');
+                            document.removeEventListener('click', closeDropdown);
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+
+    
+    <!-- Vendor JS Files -->
+    <script src="{% static 'assets/vendor/aos/aos.js' %}"></script>
+    <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+    <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"> -->
+
+    <!-- Template Main JS File -->
+    <script src="{% static 'assets/js/main.js' %}"></script>
+    
+</body>
+
+</html>

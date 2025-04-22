@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Update Delivery Cost{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Update Delivery Cost</h2>
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li><a href="{% url 'admin-booking-list' %}">Bookings</a></li>
+                <li>Update Delivery Cost</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h3 class="text-center">Booking Details</h3>
+            <br>
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title text-warning"><strong>Booking Details For {{ booking.product_name }} Products</strong></h5>
+                    <p class="text-warning"><strong>Client:</strong> {{ booking.client.username }}</p>
+                    <p class="text-warning"><strong>Truck:</strong> {{ booking.truck.name }}</p>
+                    <p class="text-warning"><strong>Truck Owner:</strong> {{ booking.truck.owner.username }}</p>
+                    <p class="text-warning"><strong>Pickup State:</strong> {{ booking.get_pickup_state_display }}</p>
+                    <p class="text-warning"><strong>Destination State:</strong> {{ booking.get_destination_state_display }}</p>
+                    <p class="text-warning"><strong>Product Weight:</strong> {{ booking.get_product_weight_display }}</p>
+                    <p class="text-warning"><strong>Product Value:</strong> &#8358;{{ booking.product_value }}</p>
+                    <p class="text-warning"><strong>Insurance Payment:</strong> &#8358;{{ booking.insurance_payment }}</p>
+                    <p class="text-warning"><strong>Current Delivery Cost:</strong> &#8358;{{ booking.delivery_cost }}</p>
+                    <p class="text-warning"><strong>Total Delivery Cost:</strong> &#8358;{{ booking.total_delivery_cost }}</p>
+                </div>
+            </div>
+            <br>
+
+            <h4 class="text-center">Update Delivery Cost</h4>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="delivery_cost">Delivery Cost (&#8358;):</label>
+                    <input type="number" step="0.01" class="form-control text-center" id="delivery_cost" name="delivery_cost" value="{{ booking.delivery_cost }}" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary mt-3">Update Delivery Cost</button>
+                    <a href="{% url 'admin-booking-list' %}" class="btn btn-secondary mt-3">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination mt-4">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}
