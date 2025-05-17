@@ -57,3 +57,48 @@ class TruckApprovalForm(forms.Form):
             (truck.id, f'{truck.name} - Owned by {truck.owner.username}') 
             for truck in Truck.objects.filter(available=False)
         ]
+
+
+class AdminBookingForm(forms.ModelForm):
+    class Meta:
+        model = Booking
+        fields = [
+            'truck', 'product_name', 'product_weight', 'product_value', 
+            'phone_number', 'pickup_state', 'destination_state', 'client'
+        ]
+        widgets = {
+            'truck': forms.Select(attrs={'class': 'form-control'}),
+            'product_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter product name'}),
+            'product_weight': forms.Select(attrs={'class': 'form-control'}),
+            'product_value': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter product value'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number'}),
+            'pickup_state': forms.Select(attrs={'class': 'form-control'}),
+            'destination_state': forms.Select(attrs={'class': 'form-control'}),
+            'client': forms.Select(attrs={'class': 'form-control'}),
+        }# forms.py
+class AdminBookingForm(forms.ModelForm):
+    delivery_cost = forms.DecimalField(
+        required=True,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter delivery cost'
+        })
+    )
+    
+    class Meta:
+        model = Booking
+        fields = [
+            'truck', 'client', 'product_name', 'product_weight', 
+            'product_value', 'phone_number', 'pickup_state', 
+            'destination_state', 'delivery_cost'
+        ]
+        widgets = {
+            'truck': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Choose a truck'}),
+            'client': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Choose a client'}),
+            'product_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter product name'}),
+            'product_weight': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Pick a weight'}),
+            'product_value': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter product value'}),
+            'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter phone number'}),
+            'pickup_state': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select a pickup state'}),
+            'destination_state': forms.Select(attrs={'class': 'form-control', 'placeholder': 'Select a destination state'}),
+        }

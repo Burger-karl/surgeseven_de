@@ -119,3 +119,32 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['profile_image', 'full_name', 'address', 'phone_number', 'state']
+
+
+# ADMIN
+
+class AdminUserCreationForm(UserCreationForm):
+    password1 = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+    password2 = forms.CharField(
+        label="Password confirmation",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text="Enter the same password as above, for verification."
+    )
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'user_type', 'is_verified', 'is_staff', 'is_superuser')
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'user_type': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['is_verified'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_staff'].widget.attrs.update({'class': 'form-check-input'})
+        self.fields['is_superuser'].widget.attrs.update({'class': 'form-check-input'})

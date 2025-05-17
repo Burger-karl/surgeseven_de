@@ -203,8 +203,10 @@
                         <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
                             <li><a href="{% url 'admin_truck_list' %}" class="dropdown-item">Uploaded Trucks</a></li>
                             <li><a href="{% url 'admin-booking-list' %}" class="dropdown-item">Bookings</a></li>
+                            <li><a href="{% url 'admin_booking_create' %}" class="dropdown-item">Create Booking</a></li>
                             <li><a href="{% url 'updated_cost_booking_list' %}" class="dropdown-item">Updated Bookings</a></li>
                         </ul>
+                        
                     </li>
                     <li class="nav-item dropdown">
                         <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Deliveries</a>
@@ -217,15 +219,15 @@
                         <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
                             <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
                             <li><a href="{% url 'profile-create' %}" class="dropdown-item">Profile</a></li>
-                            
+                            <li><a href="{% url 'admin_dashboard' %}" class="dropdown-item">Admin Dashboard</a></li>
                         </ul>
                     </li>
+                    
                     <li class="nav-item dropdown">
-                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Tracking</a>
+                        <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Users</a>
                         <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
-                            <li><a href="{% url 'assign-tracker' %}" class="dropdown-item">Assign Tracker</a></li>
-                            <li><a href="{% url 'remote-control' %}" class="dropdown-item">Remote Control</a></li>
-                            <li><a href="{% url 'geofence' %}" class="dropdown-item">Geofence</a></li>
+                            <li><a href="{% url 'admin_create_user' %}" class="dropdown-item">Create a User</a></li>
+                            <li><a href="{% url 'admin_users_list' %}" class="dropdown-item">Users List</a></li>
                         </ul>
                     </li>
                     {% endif %}
@@ -269,6 +271,7 @@
         {% block banner-slider %}{% endblock banner-slider %}
         {% block information %}{% endblock information %}    
         {% block main-content %}{% endblock main-content %}
+        {% block admin_content %}{% endblock admin_content %}
     
     
     </main>

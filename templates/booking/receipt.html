@@ -36,13 +36,23 @@
                     <p class="text-warning"><strong>Destination: {{ booking.destination_state }}</strong></p>
                     <hr>
                     <p class="text-warning"><strong>Delivery Cost: &#8358;{{ booking.delivery_cost }}</strong></p>
-                    <p class="text-warning"><strong>Insurance Payment: &#8358;{{ booking.insurance_payment }}</strong></p>
+                    {% if booking.insurance_payment > 0 %}
+                        <p class="text-warning"><strong>Insurance Payment (1%): &#8358;{{ booking.insurance_payment }}</strong></p>
+                        <p class="text-muted"><small>Insured by Veritas Kapital Assurance</small></p>
+                    {% endif %}
                     <p class="text-warning"><strong>Total Cost: &#8358;{{ booking.total_delivery_cost }}</strong></p>
                     <hr>
                     <p class="text-warning"><strong>Date of Booking: {{ booking.booked_at|date:"F j, Y, g:i a" }}</strong></p>
                     <p class="text-warning"><strong>Receipt Generated At: {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</strong></p>
+
+                    {% if booking.insurance_payment > 0 %}
+                        <div class="mt-4">
+                            <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning">
+                                Download Insurance Receipt
+                            </a>
+                        </div>
+                    {% endif %}
                 </div>
-                
             </div>
         </div>
     </div>

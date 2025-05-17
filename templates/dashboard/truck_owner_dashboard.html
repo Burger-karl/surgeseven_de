@@ -1,23 +1,17 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
-{% block title %}My Dashboard{% endblock title %}
-
-
+{% block title %}Truck Owner Dashboard{% endblock title %}
 
 {% block banner-slider %}
-
     <!-- ======= Sidebar ======= -->
     <aside id="sidebar" class="sidebar">
-
         <ul class="sidebar-nav" id="sidebar-nav">
-
             <li class="nav-item">
-                <a class="nav-link " href="#">
+                <a class="nav-link active" href="#">
                     <i class="bi bi-grid"></i>
                     <span>Dashboard</span>
                 </a>
             </li><!-- End Dashboard Nav -->
-
 
             <li class="nav-heading">Pages</li>
 
@@ -55,344 +49,339 @@
                     <span>Logout</span>
                 </a>
             </li><!-- End Error 404 Page Nav -->
-      
         </ul>
-      
     </aside><!-- End Sidebar-->
-
-
 {% endblock banner-slider %}
 
 {% block information %}
-
-    <div class="pagetitle">
-        <h1>Dashboard</h1>
-        <nav>
+<div class="pagetitle">
+    <h1>Dashboard</h1>
+    <nav>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'truck_owner_home' %}">Home</a></li>
             <li class="breadcrumb-item active">Dashboard</li>
         </ol>
-        </nav>
-    </div><!-- End Page Title -->
+    </nav>
+</div><!-- End Page Title -->
 
-    <section class="section dashboard">
-        <div class="row">
-
-        <!-- Left side columns -->
-        <div class="col-lg-8">
-          <div class="row">
-
-            <!-- Pending Trucks Section -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card sales-card">
-                  <div class="filter">
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li class="dropdown-header text-start">
-                              <h6>Filter</h6>
-                          </li>
-                          <li><a class="dropdown-item" href="#">Today</a></li>
-                          <li><a class="dropdown-item" href="#">This Month</a></li>
-                          <li><a class="dropdown-item" href="#">This Year</a></li>
-                      </ul>
-                  </div>
-
-                  <div class="card-body">
-                      <h5 class="card-title">Pending Trucks</h5>
-                      <div id="pending-trucks-carousel">
-                          {% if pending_trucks %}
-                              {% for truck in pending_trucks %}
-                                  <div class="truck-item {% if forloop.first %}active{% endif %}">
-                                      <p><strong>Name:</strong> {{ truck.name }}</p>
-                                      <p><strong>Weight:</strong> {{ truck.weight_range }}</p>
-                                      <p><strong>Location:</strong> {{ truck.state }}</p>
-                                  </div>
-                              {% endfor %}
-                          {% else %}
-                              <p>No pending trucks available.</p>
-                          {% endif %}
-                      </div>
-                      <div class="mt-3">
-                          <button class="btn btn-sm btn-outline-warning" onclick="prevPendingTruck()">Previous</button>
-                          <button class="btn btn-sm btn-outline-warning" onclick="nextPendingTruck()">Next</button>
-                      </div>
-                  </div>
-              </div>
-            </div><!-- End Pending Trucks Section -->
-
-            <!-- Available Trucks Section -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
-                  <div class="filter">
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li class="dropdown-header text-start">
-                              <h6>Filter</h6>
-                          </li>
-                          <li><a class="dropdown-item" href="#">Today</a></li>
-                          <li><a class="dropdown-item" href="#">This Month</a></li>
-                          <li><a class="dropdown-item" href="#">This Year</a></li>
-                      </ul>
-                  </div>
-
-                  <div class="card-body">
-                      <h5 class="card-title">Available Trucks</h5>
-                      <div id="available-trucks-carousel">
-                          {% if available_trucks %}
-                              {% for truck in available_trucks %}
-                                  <div class="truck-item {% if forloop.first %}active{% endif %}">
-                                      <p><strong>Name:</strong> {{ truck.name }}</p>
-                                      <p><strong>Weight:</strong> {{ truck.weight_range }}</p>
-                                      <p><strong>Location:</strong> {{ truck.state }}</p>
-                                  </div>
-                              {% endfor %}
-                          {% else %}
-                              <p>No available trucks at the moment.</p>
-                          {% endif %}
-                      </div>
-                      <div class="mt-3">
-                          <button class="btn btn-sm btn-outline-warning" onclick="prevAvailableTruck()">Previous</button>
-                          <button class="btn btn-sm btn-outline-warning" onclick="nextAvailableTruck()">Next</button>
-                      </div>
-                  </div>
-              </div>
-            </div><!-- End Available Trucks Section -->
-
-            <!-- Active Bookings Section -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
-                  <div class="filter">
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li class="dropdown-header text-start">
-                              <h6>Filter</h6>
-                          </li>
-                          <li><a class="dropdown-item" href="#">Today</a></li>
-                          <li><a class="dropdown-item" href="#">This Month</a></li>
-                          <li><a class="dropdown-item" href="#">This Year</a></li>
-                      </ul>
-                  </div>
-
-                  <div class="card-body">
-                      <h5 class="card-title">Active Bookings</h5>
-                      <div id="active-bookings-carousel">
-                          {% if active_bookings %}
-                              {% for booking in active_bookings %}
-                                  <div class="booking-item {% if forloop.first %}active{% endif %}">
-                                      <p><strong>Truck:</strong> {{ booking.truck__name }}</p>
-                                      <p><strong>Product:</strong> {{ booking.product_name }}</p>
-                                      <p><strong>Pickup:</strong> {{ booking.pickup_state }}</p>
-                                      <p><strong>Destination:</strong> {{ booking.destination_state }}</p>
-                                  </div>
-                              {% endfor %}
-                          {% else %}
-                              <p>No active bookings available.</p>
-                          {% endif %}
-                      </div>
-                      <div class="mt-3">
-                          <button class="btn btn-sm btn-outline-warning" onclick="prevActiveBooking()">Previous</button>
-                          <button class="btn btn-sm btn-outline-warning" onclick="nextActiveBooking()">Next</button>
-                      </div>
-                  </div>
-              </div>
-            </div><!-- End Active Bookings Section -->
-
-            <!-- Referral Credits Card -->
-            <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
-                  <div class="filter">
-                      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                          <li class="dropdown-header text-start">
-                              <h6>Filter</h6>
-                          </li>
-                          <li><a class="dropdown-item" href="#">Today</a></li>
-                          <li><a class="dropdown-item" href="#">This Month</a></li>
-                          <li><a class="dropdown-item" href="#">This Year</a></li>
-                      </ul>
-                  </div>
-
-                  <div class="card-body">
-                      <h5 class="card-title">Referral Credits</h5>
-                      <p class="card-text">You have earned <strong>₦{{ request.user.credits }}</strong> from referrals.</p>
-                      <a href="#" class="btn btn-warning">Withdraw Credits</a>
-                  </div>
-              </div>
-            </div><!-- End Referral Credits Card -->
-
-
-          </div>
-        </div><!-- End Left side columns -->
-
-        <!-- Top Selling -->
-        <div class="col-12">
-          <div class="card top-selling overflow-auto">
-
-            <div class="filter">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <li class="dropdown-header text-start">
-                  <h6>Filter</h6>
-                </li>
-
-                <li><a class="dropdown-item" href="#">Today</a></li>
-                <li><a class="dropdown-item" href="#">This Month</a></li>
-                <li><a class="dropdown-item" href="#">This Year</a></li>
-              </ul>
-            </div>
-
-            <div class="card-body pb-0">
-              <h5 class="card-title">Delivery Histories <span>| Delivered</span></h5>
-
-              <table class="table table-borderless">
-                <thead>
-                  <tr>
-                    <th scope="col">Truck</th>
-                    <th scope="col">Product</th>
-                    <th scope="col">Destination</th>
-                    <th scope="col">Insurance</th>
-                    <th scope="col">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if delivery_histories %}
-                    {% for history in delivery_histories %}
-                      <tr>
-                        <th scope="row">
-                          <a href="#">
-                            <img src="{{ history.truck_name }}" alt="Truck Image" class="img-fluid rounded" style="width: 50px; height: 50px;">
-                          </a>
-                        </th>
-                        <td><a href="#" class="text-primary fw-bold">{{ history.booking__product_name }}</a></td>
-                        <td>{{ history.booking__destination_state }}</td>
-                        <td>{{ history.booking__insurance_payment }}</td>
-                        <td>#{{ history.booking__total_delivery_cost }}</td>
-                      </tr>
-                    {% endfor %}
-                  {% else %}
-                    <tr>
-                      <td colspan="5" class="text-center">No delivery histories available.</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
-
-          </div>
-        </div><!-- End Top Selling -->
-
-
-        <!-- Right side columns -->
-        <div class="col-lg-4">
-
-          <!-- Recent Activity -->
-          <div class="card">
-            <div class="filter">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <li class="dropdown-header text-start">
-                  <h6>Filter</h6>
-                </li>
-                <li><a class="dropdown-item" href="#">Today</a></li>
-                <li><a class="dropdown-item" href="#">This Month</a></li>
-                <li><a class="dropdown-item" href="#">This Year</a></li>
-              </ul>
-            </div>
-
-            <div class="card-body">
-              <h5 class="card-title">Payment History</h5>
-
-              <div class="activity">
-                {% for payment in payment_history %}
-                <div class="activity-item d-flex">
-                  <div class="activite-label">{{ payment.date_created|date:"M d, Y H:i" }}</div>
-                  <i class='bi bi-circle-fill activity-badge text-primary align-self-start'></i>
-                  <div class="activity-content">
-                    Payment of <span class="fw-bold text-dark">#{{ payment.amount }}</span>
-                    {% if payment.booking__product_name %}
-                      for booking product <span class="fw-bold text-dark">{{ payment.booking__product_name }}</span>.
-                    {% endif %}
-                  </div>
+<section class="section dashboard">
+    <div class="row">
+        <!-- Stats Cards -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Trucks</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-hourglass"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ pending_trucks|length }}</h6>
+                            <span class="text-muted small pt-2 ps-1">Awaiting approval</span>
+                        </div>
+                    </div>
                 </div>
-                {% empty %}
-                <p>No recent payments found.</p>
-                {% endfor %}
-              </div>
             </div>
-          </div>
-          <!-- End Recent Activity -->
-
         </div>
-    </section>
 
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Trucks</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ available_trucks|length }}</h6>
+                            <span class="text-muted small pt-2 ps-1">Ready for booking</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card customers-card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Bookings</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ active_bookings|length }}</h6>
+                            <span class="text-muted small pt-2 ps-1">In progress</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <script>
-      // Pending Trucks Pagination
-      let pendingTruckIndex = 0;
-      const pendingTrucks = document.querySelectorAll('#pending-trucks-carousel .truck-item');
-  
-      function showPendingTruck(index) {
-          pendingTrucks.forEach((truck, i) => {
-              truck.style.display = i === index ? 'block' : 'none';
-          });
-      }
-  
-      function prevPendingTruck() {
-          pendingTruckIndex = (pendingTruckIndex - 1 + pendingTrucks.length) % pendingTrucks.length;
-          showPendingTruck(pendingTruckIndex);
-      }
-  
-      function nextPendingTruck() {
-          pendingTruckIndex = (pendingTruckIndex + 1) % pendingTrucks.length;
-          showPendingTruck(pendingTruckIndex);
-      }
-  
-      // Available Trucks Pagination
-      let availableTruckIndex = 0;
-      const availableTrucks = document.querySelectorAll('#available-trucks-carousel .truck-item');
-  
-      function showAvailableTruck(index) {
-          availableTrucks.forEach((truck, i) => {
-              truck.style.display = i === index ? 'block' : 'none';
-          });
-      }
-  
-      function prevAvailableTruck() {
-          availableTruckIndex = (availableTruckIndex - 1 + availableTrucks.length) % availableTrucks.length;
-          showAvailableTruck(availableTruckIndex);
-      }
-  
-      function nextAvailableTruck() {
-          availableTruckIndex = (availableTruckIndex + 1) % availableTrucks.length;
-          showAvailableTruck(availableTruckIndex);
-      }
-  
-      // Active Bookings Pagination
-      let activeBookingIndex = 0;
-      const activeBookings = document.querySelectorAll('#active-bookings-carousel .booking-item');
-  
-      function showActiveBooking(index) {
-          activeBookings.forEach((booking, i) => {
-              booking.style.display = i === index ? 'block' : 'none';
-          });
-      }
-  
-      function prevActiveBooking() {
-          activeBookingIndex = (activeBookingIndex - 1 + activeBookings.length) % activeBookings.length;
-          showActiveBooking(activeBookingIndex);
-      }
-  
-      function nextActiveBooking() {
-          activeBookingIndex = (activeBookingIndex + 1) % activeBookings.length;
-          showActiveBooking(activeBookingIndex);
-      }
-  
-      // Initialize pagination
-      showPendingTruck(0);
-      showAvailableTruck(0);
-      showActiveBooking(0);
-  </script>
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Referral Credits</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>₦{{ request.user.credits }}</h6>
+                            <span class="text-muted small pt-2 ps-1">Available balance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Pending Trucks Table -->
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Trucks</h5>
+                    {% if pending_trucks %}
+                        <table class="table table-borderless datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Truck</th>
+                                    <th scope="col">Weight Range</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Images</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for truck in pending_trucks %}
+                                <tr>
+                                    <td>{{ truck.name }}</td>
+                                    <td>{{ truck.weight_range }}</td>
+                                    <td>{{ truck.state }}</td>
+                                    <td>{{ truck.image_count }}</td>
+                                    <td><span class="badge bg-warning">Pending</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center">No pending trucks available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
+        <!-- Available Trucks Table -->
+        <div class="col-12">
+            <div class="card top-selling overflow-auto">
+                <div class="card-body pb-0">
+                    <h5 class="card-title">Available Trucks</h5>
+                    {% if available_trucks %}
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Truck</th>
+                                    <th scope="col">Weight Range</th>
+                                    <th scope="col">Location</th>
+                                    <th scope="col">Images</th>
+                                    <th scope="col">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for truck in available_trucks %}
+                                <tr>
+                                    <td>{{ truck.name }}</td>
+                                    <td>{{ truck.weight_range }}</td>
+                                    <td>{{ truck.state }}</td>
+                                    <td>{{ truck.image_count }}</td>
+                                    <td><span class="badge bg-success">Available</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center">No available trucks at the moment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Bookings Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Bookings</h5>
+                    {% if active_bookings %}
+                        <table class="table table-borderless datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Truck</th>
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Pickup</th>
+                                    <th scope="col">Destination</th>
+                                    <th scope="col">Delivery Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in active_bookings %}
+                                <tr>
+                                    <td>{{ booking.truck__name }}</td>
+                                    <td>{{ booking.product_name }}</td>
+                                    <td>{{ booking.pickup_state }}</td>
+                                    <td>{{ booking.destination_state }}</td>
+                                    <td>₦{{ booking.delivery_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center">No active bookings available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Histories -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Histories</h5>
+                    {% if delivery_histories %}
+                        <table class="table table-borderless datatable">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Truck</th>
+                                    <th scope="col">Product</th>
+                                    <th scope="col">Destination</th>
+                                    <th scope="col">Insurance</th>
+                                    <th scope="col">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for history in delivery_histories %}
+                                <tr>
+                                    <td>{{ history.booking__truck__name }}</td>
+                                    <td>{{ history.booking__product_name }}</td>
+                                    <td>{{ history.booking__destination_state }}</td>
+                                    <td>₦{{ history.booking__insurance_payment }}</td>
+                                    <td>₦{{ history.booking__total_delivery_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center">No delivery histories available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payment History</h5>
+                    <div class="activity">
+                        {% for payment in payment_history %}
+                        <div class="activity-item d-flex">
+                            <div class="activite-label">{{ payment.date_created|date:"M d, Y H:i" }}</div>
+                            <i class='bi bi-circle-fill activity-badge text-primary align-self-start'></i>
+                            <div class="activity-content">
+                                Payment of <span class="fw-bold text-dark">₦{{ payment.amount }}</span>
+                                {% if payment.booking__product_name %}
+                                    for booking product <span class="fw-bold text-dark">{{ payment.booking__product_name }}</span>.
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-center">No recent payments found.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Initialize the first item in each carousel to show
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show first pending truck if exists
+        const pendingTrucks = document.querySelectorAll('#pending-trucks-carousel .truck-item');
+        if (pendingTrucks.length > 0) {
+            pendingTrucks[0].style.display = 'block';
+        }
+        
+        // Show first available truck if exists
+        const availableTrucks = document.querySelectorAll('#available-trucks-carousel .truck-item');
+        if (availableTrucks.length > 0) {
+            availableTrucks[0].style.display = 'block';
+        }
+        
+        // Show first active booking if exists
+        const activeBookings = document.querySelectorAll('#active-bookings-carousel .booking-item');
+        if (activeBookings.length > 0) {
+            activeBookings[0].style.display = 'block';
+        }
+    });
+
+    // Pending Trucks Pagination
+    let pendingTruckIndex = 0;
+    const pendingTrucks = document.querySelectorAll('#pending-trucks-carousel .truck-item');
+
+    function showPendingTruck(index) {
+        pendingTrucks.forEach((truck, i) => {
+            truck.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    function prevPendingTruck() {
+        pendingTruckIndex = (pendingTruckIndex - 1 + pendingTrucks.length) % pendingTrucks.length;
+        showPendingTruck(pendingTruckIndex);
+    }
+
+    function nextPendingTruck() {
+        pendingTruckIndex = (pendingTruckIndex + 1) % pendingTrucks.length;
+        showPendingTruck(pendingTruckIndex);
+    }
+
+    // Available Trucks Pagination
+    let availableTruckIndex = 0;
+    const availableTrucks = document.querySelectorAll('#available-trucks-carousel .truck-item');
+
+    function showAvailableTruck(index) {
+        availableTrucks.forEach((truck, i) => {
+            truck.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    function prevAvailableTruck() {
+        availableTruckIndex = (availableTruckIndex - 1 + availableTrucks.length) % availableTrucks.length;
+        showAvailableTruck(availableTruckIndex);
+    }
+
+    function nextAvailableTruck() {
+        availableTruckIndex = (availableTruckIndex + 1) % availableTrucks.length;
+        showAvailableTruck(availableTruckIndex);
+    }
+
+    // Active Bookings Pagination
+    let activeBookingIndex = 0;
+    const activeBookings = document.querySelectorAll('#active-bookings-carousel .booking-item');
+
+    function showActiveBooking(index) {
+        activeBookings.forEach((booking, i) => {
+            booking.style.display = i === index ? 'block' : 'none';
+        });
+    }
+
+    function prevActiveBooking() {
+        activeBookingIndex = (activeBookingIndex - 1 + activeBookings.length) % activeBookings.length;
+        showActiveBooking(activeBookingIndex);
+    }
+
+    function nextActiveBooking() {
+        activeBookingIndex = (activeBookingIndex + 1) % activeBookings.length;
+        showActiveBooking(activeBookingIndex);
+    }
+</script>
 {% endblock information %}

@@ -1,0 +1,674 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock title %}
+
+{% block banner-slider %}
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            
+            <li class="nav-heading">Admin Pages</li>
+            
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'admin_booking_create' %}">
+                    <i class="bi bi-truck"></i>
+                    <span>Create Booking</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'admin_users_list' %}">
+                    <i class="bi bi-people"></i>
+                    <span>User Management</span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </aside><!-- End Sidebar-->
+{% endblock banner-slider %}
+
+{% block information %}
+<div class="pagetitle">
+    <h1>Admin Dashboard</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+        <!-- Stats Cards -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Verified Users</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ verified_users_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Users</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ active_users_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card customers-card">
+                <div class="card-body">
+                    <h5 class="card-title">Paid Bookings</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ paid_bookings_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Unpaid Bookings</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-cash"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ unpaid_bookings_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- More Stats Cards -->
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Schedules</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ delivery_schedules_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card customers-card">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Histories</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ delivery_histories_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card sales-card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Trucks</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-hourglass"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ pending_trucks_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="card info-card revenue-card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Trucks</h5>
+                    <div class="d-flex align-items-center">
+                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="ps-3">
+                            <h6>{{ available_trucks_count }}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paid Bookings Table -->
+        <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+                <div class="card-body">
+                    <h5 class="card-title">Paid Bookings</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>Truck</th>
+                                <th>Product</th>
+                                <th>Value</th>
+                                <th>Total Cost</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in paid_bookings %}
+                            <tr>
+                                <td>{{ booking.id }}</td>
+                                <td>{{ booking.client.username }}</td>
+                                <td>{{ booking.truck.name }}</td>
+                                <td>{{ booking.product_name }}</td>
+                                <td>₦{{ booking.product_value }}</td>
+                                <td>₦{{ booking.total_delivery_cost }}</td>
+                                <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No paid bookings found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if paid_bookings.has_other_pages %}
+                    <nav aria-label="Paid bookings pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if paid_bookings.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paid_bookings.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in paid_bookings.paginator.page_range %}
+                            <li class="page-item {% if num == paid_bookings.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if paid_bookings.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paid_bookings.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Unpaid Bookings Table -->
+        <div class="col-12">
+            <div class="card top-selling overflow-auto">
+                <div class="card-body pb-0">
+                    <h5 class="card-title">Unpaid Bookings</h5>
+                    <table class="table table-borderless">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>Truck</th>
+                                <th>Product</th>
+                                <th>Value</th>
+                                <th>Total Cost</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in unpaid_bookings %}
+                            <tr>
+                                <td>{{ booking.id }}</td>
+                                <td>{{ booking.client.username }}</td>
+                                <td>{{ booking.truck.name }}</td>
+                                <td>{{ booking.product_name }}</td>
+                                <td>₦{{ booking.product_value }}</td>
+                                <td>₦{{ booking.total_delivery_cost }}</td>
+                                <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-primary">View</a>
+                                    <a href="#" class="btn btn-sm btn-warning">Edit</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8">No unpaid bookings found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if unpaid_bookings.has_other_pages %}
+                    <nav aria-label="Unpaid bookings pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if unpaid_bookings.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ unpaid_bookings.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in unpaid_bookings.paginator.page_range %}
+                            <li class="page-item {% if num == unpaid_bookings.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if unpaid_bookings.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ unpaid_bookings.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Schedules Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Schedules</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Client</th>
+                                <th>Truck</th>
+                                <th>Product</th>
+                                <th>Destination</th>
+                                <th>Status</th>
+                                <th>Scheduled Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for schedule in delivery_schedules %}
+                            <tr>
+                                <td>{{ schedule.booking.id }}</td>
+                                <td>{{ schedule.booking.client.username }}</td>
+                                <td>{{ schedule.booking.truck.name }}</td>
+                                <td>{{ schedule.booking.product_name }}</td>
+                                <td>{{ schedule.booking.destination_state }}</td>
+                                <td>
+                                    <span class="badge bg-{% if schedule.status == 'Pending' %}warning{% elif schedule.status == 'In Transit' %}info{% else %}success{% endif %}">
+                                        {{ schedule.status }}
+                                    </span>
+                                </td>
+                                <td>{{ schedule.scheduled_date|date:"M d, Y" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No delivery schedules found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if delivery_schedules.has_other_pages %}
+                    <nav aria-label="Delivery schedules pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if delivery_schedules.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ delivery_schedules.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in delivery_schedules.paginator.page_range %}
+                            <li class="page-item {% if num == delivery_schedules.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if delivery_schedules.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ delivery_schedules.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Histories Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Delivery Histories</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Client</th>
+                                <th>Truck</th>
+                                <th>Product</th>
+                                <th>Destination</th>
+                                <th>Completed Date</th>
+                                <th>Total Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history in delivery_histories %}
+                            <tr>
+                                <td>{{ history.booking.id }}</td>
+                                <td>{{ history.booking.client.username }}</td>
+                                <td>{{ history.booking.truck.name }}</td>
+                                <td>{{ history.booking.product_name }}</td>
+                                <td>{{ history.booking.destination_state }}</td>
+                                <td>{{ history.completed_date|date:"M d, Y" }}</td>
+                                <td>₦{{ history.booking.total_delivery_cost }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No delivery histories found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if delivery_histories.has_other_pages %}
+                    <nav aria-label="Delivery histories pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if delivery_histories.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ delivery_histories.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in delivery_histories.paginator.page_range %}
+                            <li class="page-item {% if num == delivery_histories.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if delivery_histories.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ delivery_histories.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Trucks Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Trucks</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Owner</th>
+                                <th>Weight Range</th>
+                                <th>State</th>
+                                <th>Images</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for truck in pending_trucks %}
+                            <tr>
+                                <td>{{ truck.id }}</td>
+                                <td>{{ truck.name }}</td>
+                                <td>{{ truck.owner.username }}</td>
+                                <td>{{ truck.weight_range }}</td>
+                                <td>{{ truck.state }}</td>
+                                <td>{{ truck.image_count }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-primary">View</a>
+                                    <a href="#" class="btn btn-sm btn-success">Approve</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No pending trucks found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if pending_trucks.has_other_pages %}
+                    <nav aria-label="Pending trucks pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if pending_trucks.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pending_trucks.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in pending_trucks.paginator.page_range %}
+                            <li class="page-item {% if num == pending_trucks.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if pending_trucks.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ pending_trucks.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Trucks Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Trucks</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Owner</th>
+                                <th>Weight Range</th>
+                                <th>State</th>
+                                <th>Images</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for truck in available_trucks %}
+                            <tr>
+                                <td>{{ truck.id }}</td>
+                                <td>{{ truck.name }}</td>
+                                <td>{{ truck.owner.username }}</td>
+                                <td>{{ truck.weight_range }}</td>
+                                <td>{{ truck.state }}</td>
+                                <td>{{ truck.image_count }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-primary">View</a>
+                                    <a href="#" class="btn btn-sm btn-warning">Disable</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No available trucks found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if available_trucks.has_other_pages %}
+                    <nav aria-label="Available trucks pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if available_trucks.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ available_trucks.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in available_trucks.paginator.page_range %}
+                            <li class="page-item {% if num == available_trucks.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if available_trucks.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ available_trucks.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History Table -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Payment History</h5>
+                    <table class="table table-borderless datatable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Reference</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.id }}</td>
+                                <td>{{ payment.user.username }}</td>
+                                <td>₦{{ payment.amount }}</td>
+                                <td>{{ payment.ref }}</td>
+                                <td>
+                                    {% if payment.subscription %}
+                                        Subscription
+                                    {% elif payment.booking %}
+                                        Booking
+                                    {% else %}
+                                        Other
+                                    {% endif %}
+                                </td>
+                                <td>{{ payment.date_created|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if payment.verified %}success{% else %}warning{% endif %}">
+                                        {% if payment.verified %}Verified{% else %}Pending{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No payment history found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if payments.has_other_pages %}
+                    <nav aria-label="Payments pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if payments.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ payments.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in payments.paginator.page_range %}
+                            <li class="page-item {% if num == payments.number %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if payments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ payments.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock information %}

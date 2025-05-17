@@ -1,5 +1,14 @@
 from django.urls import path
-from .views import RegisterView, VerifyEmailView, ResendOTPView, LoginView, LogoutView, ForgotPasswordView, ResetPasswordView, ProfileCreateView, ProfileView, ProfileUpdateView, ReferralView
+from .views import (RegisterView, VerifyEmailView, 
+    ResendOTPView, LoginView, LogoutView, 
+    ForgotPasswordView, ResetPasswordView, 
+    ProfileCreateView, ProfileView,
+    ProfileUpdateView, ReferralView,
+    admin_create_user, admin_delete_user,
+    AdminUserListView, AdminUserDetailView,
+
+)
+
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -16,7 +25,9 @@ urlpatterns = [
     
 
     # FOR ADMIN USER
-    # path('admin/create-user/', AdminCreateUserView.as_view(), name='admin-create-user'),
-    # path('admin/delete-user/<int:pk>/', AdminDeleteUserView.as_view(), name='admin-delete-user'),
+    path('admin/users/create/', admin_create_user, name='admin_create_user'),
+    path('admin/users/', AdminUserListView.as_view(), name='admin_users_list'),
+    path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin_user_detail'),
+    path('admin/users/<int:pk>/delete/', admin_delete_user, name='admin_delete_user'),
 ]
 

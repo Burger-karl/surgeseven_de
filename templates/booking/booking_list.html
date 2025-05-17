@@ -35,14 +35,19 @@
                         <strong>Insurance Payment: &#8358;{{ booking.insurance_payment }}</strong><br>
                         <strong>Total Cost: &#8358;{{ booking.total_delivery_cost }}</strong>
                     </p>
-                    {% if booking.delivery_cost > 0 and not booking.payment_completed %}
-                        <form action="{% url 'create-booking-payment' booking.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success">Proceed to Payment</button>
-                        </form>
-                    {% else %}
-                        <button class="btn btn-secondary" disabled>Proceed to Payment</button>
-                    {% endif %}
+                    <div class="btn-group" role="group">
+                        {% if booking.delivery_cost > 0 and not booking.payment_completed %}
+                            <form action="{% url 'create-booking-payment' booking.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">Proceed to Payment</button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-secondary" disabled>Proceed to Payment</button>
+                        {% endif %}
+                        {% if can_edit and not booking.payment_completed %}
+                            <a href="{% url 'booking_edit' booking.id %}" class="btn btn-primary ml-2">Edit Booking</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

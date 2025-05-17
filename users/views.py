@@ -1,12 +1,13 @@
+from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.views import View
-from django.views.generic import FormView, DetailView
+from django.views.generic import FormView, DetailView, ListView
 from django.urls import reverse_lazy
-from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm
+from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm, AdminUserCreationForm
 from .models import User, OTP, PasswordResetToken, Profile, Referral
 from subscriptions.models import SubscriptionPlan, UserSubscription
 from datetime import timedelta
@@ -18,7 +19,10 @@ from django.utils.decorators import method_decorator
 
 # Create your views here.
 
-# Define OTP expiration duration in one place for consistency
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
+
 OTP_EXPIRATION_MINUTES = 10
 
 
@@ -345,3 +349,61 @@ class ProfileUpdateView(View):
             return redirect('profile')
 
         return render(request, 'users/profile_update.html', {'form': form})
+    
+
+
+# ADMIN
+
+@user_passes_test(is_admin)
+def admin_create_user(request):
+    if request.method == 'POST':
+        form = AdminUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User {user.email} created successfully!')
+            return redirect('admin_users_list')
+    else:
+        form = AdminUserCreationForm()
+    
+    return render(request, 'users/admin/create_user.html', {'form': form})
+
+
+class AdminUserListView(ListView):
+    model = User
+    template_name = 'users/admin/users_list.html'
+    context_object_name = 'users'
+    paginate_by = 20
+    
+    def get_queryset(self):
+        return User.objects.all().order_by('-date_joined')
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+    
+
+class AdminUserDetailView(DetailView):
+    model = User
+    template_name = 'users/admin/user_detail.html'
+    context_object_name = 'user_detail'
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            return redirect('login')
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.get_object()
+        return context
+
+@user_passes_test(is_admin)
+def admin_delete_user(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if request.method == 'POST':
+        email = user.email
+        user.delete()
+        messages.success(request, f'User {email} deleted successfully!')
+        return redirect('admin_users_list')
+    return render(request, 'users/admin/confirm_delete.html', {'user': user})

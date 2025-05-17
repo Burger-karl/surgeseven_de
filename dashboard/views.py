@@ -10,8 +10,13 @@ from booking.models import Booking, Truck, TruckImage
 from delivery.models import DeliverySchedule, DeliveryHistory
 from payment.models import Payment
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Count
 from django.db import models 
+from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 
 
 # Create your views here.
@@ -159,6 +164,12 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
             'id', 'truck__name', 'product_name', 'product_value', 'pickup_state', 'destination_state', 'delivery_cost'
         )
 
+        # Paid bookings (payment_completed = True)
+        paid_bookings = Booking.objects.filter(client=user, payment_completed=True).values(
+            'id', 'truck__name', 'product_name', 'product_value', 'pickup_state', 
+            'destination_state', 'delivery_cost'
+        )
+
         # Delivery schedules
         delivery_schedules = DeliverySchedule.objects.filter(client=user).values(
             'booking__truck__name', 'booking__product_name', 'booking__total_delivery_cost', 
@@ -184,6 +195,7 @@ class ClientDashboardView(LoginRequiredMixin, TemplateView):
             'profile': profile_data,
             'subscription': subscription_data,
             'unpaid_bookings': list(unpaid_bookings),
+            'paid_bookings': list(paid_bookings),
             'delivery_schedules': list(delivery_schedules),
             'delivery_histories': list(delivery_histories),
             'payment_history': list(payment_history),
@@ -269,4 +281,71 @@ class TruckOwnerDashboardView(LoginRequiredMixin, TemplateView):
             'referral_credits': referral_credits,  # Add referral credits to context
         })
 
+        return context
+
+
+class AdminDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard/admin_dashboard.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # User statistics
+        context['verified_users_count'] = User.objects.filter(is_verified=True).count()
+        context['active_users_count'] = User.objects.filter(is_active=True).count()
+        
+        # Booking statistics
+        context['paid_bookings_count'] = Booking.objects.filter(payment_completed=True).count()
+        context['unpaid_bookings_count'] = Booking.objects.filter(payment_completed=False).count()
+        
+        # Delivery statistics
+        context['delivery_schedules_count'] = DeliverySchedule.objects.count()
+        context['delivery_histories_count'] = DeliveryHistory.objects.count()
+        
+        # Truck statistics
+        context['pending_trucks_count'] = Truck.objects.filter(available=False).count()
+        context['available_trucks_count'] = Truck.objects.filter(available=True).count()
+        
+        # Paginated lists
+        page = self.request.GET.get('page', 1)
+        
+        # Paid bookings with pagination
+        paid_bookings = Booking.objects.filter(payment_completed=True).select_related('client', 'truck')
+        paid_paginator = Paginator(paid_bookings, 10)
+        context['paid_bookings'] = paid_paginator.get_page(page)
+        
+        # Unpaid bookings with pagination
+        unpaid_bookings = Booking.objects.filter(payment_completed=False).select_related('client', 'truck')
+        unpaid_paginator = Paginator(unpaid_bookings, 10)
+        context['unpaid_bookings'] = unpaid_paginator.get_page(page)
+        
+        # Delivery schedules with pagination
+        delivery_schedules = DeliverySchedule.objects.select_related('booking', 'booking__client', 'booking__truck')
+        schedule_paginator = Paginator(delivery_schedules, 10)
+        context['delivery_schedules'] = schedule_paginator.get_page(page)
+        
+        # Delivery histories with pagination
+        delivery_histories = DeliveryHistory.objects.select_related('booking', 'booking__client', 'booking__truck')
+        history_paginator = Paginator(delivery_histories, 10)
+        context['delivery_histories'] = history_paginator.get_page(page)
+        
+        # Pending trucks with pagination
+        pending_trucks = Truck.objects.filter(available=False).select_related('owner').annotate(
+            image_count=Count('images')
+        )
+        pending_paginator = Paginator(pending_trucks, 10)
+        context['pending_trucks'] = pending_paginator.get_page(page)
+        
+        # Available trucks with pagination
+        available_trucks = Truck.objects.filter(available=True).select_related('owner').annotate(
+            image_count=Count('images')
+        )
+        available_paginator = Paginator(available_trucks, 10)
+        context['available_trucks'] = available_paginator.get_page(page)
+        
+        # Payment history
+        payments = Payment.objects.select_related('user', 'subscription', 'booking').order_by('-date_created')
+        payment_paginator = Paginator(payments, 10)
+        context['payments'] = payment_paginator.get_page(page)
+        
         return context

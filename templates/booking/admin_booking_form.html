@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Create Booking{% endblock %}
+    
+{% block banner-slider %}
+
+    <section class="breadcrumbs">
+        <div class="container">
+
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Bookings</h2>
+            <ol>
+            <li><a href="{% url 'admin_home' %}">Home</a></li>
+            <li>Bookings</li>
+            </ol>
+        </div>
+
+        </div>
+    </section>
+
+{% endblock %}
+
+{% block main-content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Create Booking (Admin)</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="id_truck">Truck</label>
+                            {{ form.truck }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_client">Client</label>
+                            {{ form.client }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_product_name">Product Name</label>
+                            {{ form.product_name }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_product_weight">Product Weight</label>
+                            {{ form.product_weight }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_product_value">Product Value</label>
+                            {{ form.product_value }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_phone_number">Phone Number</label>
+                            {{ form.phone_number }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_pickup_state">Pickup State</label>
+                            {{ form.pickup_state }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_destination_state">Destination State</label>
+                            {{ form.destination_state }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="id_delivery_cost">Delivery Cost (₦)</label>
+                            {{ form.delivery_cost }}
+                            <small class="form-text text-muted">
+                                Enter the delivery cost in Naira
+                            </small>
+                        </div>
+                        
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary">Create Booking</button>
+                            <a href="{% url 'admin_home' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5>Registered Users Details</h5>
+            <ol>
+                <li><a href="{% url 'admin_home' %}">Home</a></li>
+                <li>Users Details</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card bg-dark">
+    <div class="card-header text-white d-flex justify-content-between align-items-center">
+        <span>User Details: {{ user_detail.email }}</span>
+        <div>
+            <a href="{% url 'admin_users_list' %}" class="btn btn-sm btn-secondary">Back to List</a>
+            <a href="{% url 'admin_delete_user' user_detail.id %}" class="btn btn-sm btn-danger">Delete User</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-3 bg-secondary text-white">
+                    <div class="card-header">Basic Information</div>
+                    <div class="card-body">
+                        <p><strong>Email:</strong> {{ user_detail.email }}</p>
+                        <p><strong>Username:</strong> {{ user_detail.username }}</p>
+                        <p><strong>First Name:</strong> {{ user_detail.first_name|default:"Not set" }}</p>
+                        <p><strong>Last Name:</strong> {{ user_detail.last_name|default:"Not set" }}</p>
+                        <p><strong>User Type:</strong> {{ user_detail.get_user_type_display }}</p>
+                        <p><strong>Date Joined:</strong> {{ user_detail.date_joined }}</p>
+                        <p><strong>Last Login:</strong> {{ user_detail.last_login|default:"Never" }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-3 bg-secondary text-white">
+                    <div class="card-header">Account Status</div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Verified:</strong> 
+                            {% if user_detail.is_verified %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Active:</strong> 
+                            {% if user_detail.is_active %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Staff:</strong> 
+                            {% if user_detail.is_staff %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                        <p>
+                            <strong>Superuser:</strong> 
+                            {% if user_detail.is_superuser %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Credits:</strong> {{ user_detail.credits }}</p>
+                        <p><strong>Referral Code:</strong> {{ user_detail.referral_code }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock admin_content %}

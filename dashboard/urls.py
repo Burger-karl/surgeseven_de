@@ -1,5 +1,10 @@
 from django.urls import path
-from .views import ClientDashboardView, TruckOwnerDashboardView, AboutView, ClientHomeView, TruckOwnerHomeView, AdminHomeView
+from .views import (ClientDashboardView, 
+    TruckOwnerDashboardView, AboutView, 
+    ClientHomeView, TruckOwnerHomeView, 
+    AdminHomeView, AdminDashboardView,
+)
+
 
 urlpatterns = [
     path('client/home/', ClientHomeView.as_view(), name='client_home'),
@@ -9,4 +14,5 @@ urlpatterns = [
     
     path('client-dashboard/', ClientDashboardView.as_view(), name='client_dashboard'),
     path('truck-owner-dashboard/', TruckOwnerDashboardView.as_view(), name='truck_owner_dashboard'),
+    path('admin-dashboard/', AdminDashboardView.as_view(), name='admin_dashboard'),
 ]
