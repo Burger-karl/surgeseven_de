@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-7*p9vc)2sy2vn&e0t6uph-^ycs7+(gzw$3-p+bw0@%df(hyuyb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "surgeseven-demo.onrender.com"]
 
 
 # Application definition
