@@ -209,15 +209,15 @@ AUTHENTICATION_BACKENDS = [
 
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Using Redis as broker
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_TIMEZONE = 'UTC'
-CELERY_BEAT_SCHEDULE = {
-    'refresh-tracker-tokens': {
-        'task': 'tracker.tasks.refresh_tracker_tokens',
-        'schedule': timedelta(hours=1),  # Run every hour to check for expiring tokens
-    },
-}
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Using Redis as broker
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_TIMEZONE = 'UTC'
+# CELERY_BEAT_SCHEDULE = {
+#     'refresh-tracker-tokens': {
+#         'task': 'tracker.tasks.refresh_tracker_tokens',
+#         'schedule': timedelta(hours=1),  # Run every hour to check for expiring tokens
+#     },
+# }
 
 
 # iTracksafeX Settings
