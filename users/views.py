@@ -16,8 +16,19 @@ from django.conf import settings
 from .utils import generate_random_otp
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
+
+def user_type_required(user_type):
+    def decorator(view_func):
+        def _wrapped_view(request, *args, **kwargs):
+            if not request.user.is_authenticated or request.user.user_type != user_type:
+                raise PermissionDenied(f"Only {user_type}s can access this view.")
+            return view_func(request, *args, **kwargs)
+        return _wrapped_view
+    return decorator
+
 
 def is_admin(user):
     return user.is_authenticated and user.is_superuser
@@ -367,7 +378,7 @@ def admin_create_user(request):
     
     return render(request, 'users/admin/create_user.html', {'form': form})
 
-
+@method_decorator([login_required, user_type_required('admin')], name='dispatch')
 class AdminUserListView(ListView):
     model = User
     template_name = 'users/admin/users_list.html'

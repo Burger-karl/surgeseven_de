@@ -109,22 +109,22 @@ WSGI_APPLICATION = 'surgeseven_demo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'SurgeSeven',
-        'USER': 'postgres',
-        'PASSWORD': 'C1h2a3r4l5e6s7',
-        'HOST': 'localhost'
-    }
-}
-
-
 # DATABASES = {
-#     'default': dj_database_url.config(
-#         default=os.getenv('DATABASE_URL')
-#     )
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'SurgeSeven',
+#         'USER': 'postgres',
+#         'PASSWORD': 'C1h2a3r4l5e6s7',
+#         'HOST': 'localhost'
+#     }
 # }
+
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL')
+    )
+}
 
 
 # # Database

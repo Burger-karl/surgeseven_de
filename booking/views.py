@@ -582,7 +582,7 @@ class BookingWithUpdatedCostView(ListView):
 
 
 
-@method_decorator(admin_required, name='dispatch')
+@method_decorator([login_required, user_type_required('admin')], name='dispatch')
 class BookingAdminListView(ListView):
     model = Booking
     template_name = 'booking/admin_booking_list.html'
