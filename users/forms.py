@@ -7,7 +7,6 @@ class RegisterForm(UserCreationForm):
     USER_TYPE_CHOICES = [
         ('client', 'Client'),
         ('truck_owner', 'Truck Owner'),
-        ('admin', 'Admin'), 
     ]
     
     username = forms.CharField(
