@@ -140,7 +140,7 @@
                 <li>Booking System</li>
                 <li>Tracking System</li>
                 <li>Insurance Policy</li>
-                <li>{{ plan.duration|split:" "|first }}</li>
+                <li>{{ plan.formatted_duration }}</li>
             </ul>
             <div class="pricing-footer pt-3 pb-5">
                 <a href="{% url 'subscribe' plan.id %}" class="btn bg-white text-green">Subscribe</a>

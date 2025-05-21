@@ -20,11 +20,24 @@ paystack_client = PaystackClient()
 class SubscriptionPlanListView(View):
     def get(self, request):
         subscription_plans = SubscriptionPlan.objects.all()
+        
+        # Format the duration for each plan
+        for plan in subscription_plans:
+            days = plan.duration.days
+            if days >= 365:
+                years = days // 365
+                plan.formatted_duration = f"{years} Year{'s' if years > 1 else ''}"
+            elif days >= 30:
+                months = days // 30
+                plan.formatted_duration = f"{months} Month{'s' if months > 1 else ''}"
+            else:
+                plan.formatted_duration = f"{days} Day{'s' if days > 1 else ''}"
+        
         context = {
             'subscription_plans': subscription_plans,
         }
         return render(request, 'subscriptions/subscription_plans.html', context)
-
+    
 
 class UserSubscriptionsView(ListView):
     model = UserSubscription

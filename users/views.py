@@ -208,10 +208,41 @@ class ResendOTPView(View):
         return redirect('verify-email')
     
 
+# class LoginView(FormView):
+#     form_class = LoginForm
+#     template_name = 'users/login.html'
+#     success_url = reverse_lazy('profile-create')  # Default success URL
+
+#     def form_valid(self, form):
+#         email = form.cleaned_data.get('email')
+#         password = form.cleaned_data.get('password')
+#         user = authenticate(email=email, password=password)
+
+#         if user:
+#             if not user.is_verified:
+#                 messages.error(self.request, "Account not verified. Please verify your email.")
+#                 return redirect('login')
+
+#             login(self.request, user)
+#             messages.success(self.request, "Logged in successfully.")
+
+#             # Check if the user has a profile
+#             try:
+#                 profile = user.profile
+#                 # If the user has a profile, redirect to the dashboard or another page
+#                 return redirect(self.get_success_url())
+#             except Profile.DoesNotExist:
+#                 # If the user does not have a profile, redirect to the profile creation page
+#                 return redirect('profile-create')
+
+#         messages.error(self.request, "Invalid credentials.")
+#         return redirect('login')
+
+
 class LoginView(FormView):
     form_class = LoginForm
     template_name = 'users/login.html'
-    success_url = reverse_lazy('profile-create')  # Default success URL
+    success_url = reverse_lazy('client_home')  # Default fallback URL
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
@@ -226,14 +257,14 @@ class LoginView(FormView):
             login(self.request, user)
             messages.success(self.request, "Logged in successfully.")
 
-            # Check if the user has a profile
-            try:
-                profile = user.profile
-                # If the user has a profile, redirect to the dashboard or another page
-                return redirect(self.get_success_url())
-            except Profile.DoesNotExist:
-                # If the user does not have a profile, redirect to the profile creation page
-                return redirect('profile-create')
+            # Redirect based on user type
+            if user.is_superuser or user.is_staff:
+                return redirect('admin_home')
+            elif user.user_type == 'truck_owner':
+                return redirect('truck_owner_home')
+            else:
+                # Default to client home (you might want to check for client profile here)
+                return redirect('client_home')
 
         messages.error(self.request, "Invalid credentials.")
         return redirect('login')

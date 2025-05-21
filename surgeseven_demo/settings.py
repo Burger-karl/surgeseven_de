@@ -198,8 +198,6 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR/'media'
 
-LOGIN_REDIRECT_URL = '/profile-create/'
-
 AUTH_USER_MODEL = 'users.User'
 
 AUTHENTICATION_BACKENDS = [
