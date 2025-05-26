@@ -188,12 +188,13 @@
                         </ul>
                     </li>
                     
-                    {% with user.truck_set.last as truck %}
-                        {% if truck and truck.tracker_id %}
-                            <li><a href="#">Track My Truck</a></li>
+                    {% for truck in request.user.truck_set.all %}
+                        {% if truck.tracker_id %}
+                            <li><a href="{% url 'tracking_dashboard' truck.id %}">Track {{ truck.name }}</a></li>
                         {% endif %}
-                    {% endwith %}
-                
+                    {% empty %}
+                        <li>No trucks available for tracking</li>
+                    {% endfor %}
 
                     {% elif request.user.user_type == 'admin' %}
                     

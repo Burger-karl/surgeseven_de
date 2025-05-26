@@ -13,7 +13,7 @@ urlpatterns = [
     path('payment/', include('payment.urls')),
     path('delivery/', include('delivery.urls')),
     path('notify/', include('notifications.urls')),
-    # path('tracker/', include('tracker.urls')),
+    path('tracker/', include('tracker.urls')),
 
     # Redirect root URL to the login page
     path('', lambda request: redirect('login')),  # Replace 'login' with your actual login URL name

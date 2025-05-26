@@ -1,71 +1,248 @@
-
 {% load static %}
 
 {% block title %}Truck Tracking - {{ truck.name }}{% endblock %}
 
 {% block main-content %}
 <div class="container mt-4">
-    <h2 class="text-center">Real-Time Tracking for {{ truck.name }}</h2>
-    <p><strong>Tracker ID:</strong> {{ truck.tracker_id }}</p>
-    <div id="map"></div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Real-Time Tracking for {{ truck.name }}</h2>
+        <div class="badge bg-primary fs-6">Tracker ID: {{ truck.tracker_id }}</div>
+    </div>
 
-    <table class="table table-bordered mt-4">
-        <thead class="table-dark">
-            <tr>
-                <th>Latitude</th>
-                <th>Longitude</th>
-                <th>Speed (km/h)</th>
-                <th>Last Updated</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr id="tracking-info">
-                <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
-                <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
-                <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
-                <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="card mb-4">
+        <div class="card-body p-0" style="height: 400px;">
+            <div id="map" style="height: 100%;"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Tracking Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Latitude</th>
+                                <th>Longitude</th>
+                                <th>Speed (km/h)</th>
+                                <th>Last Updated</th>
+                                {% if is_admin %}
+                                <th>Battery</th>
+                                <th>Signal</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="tracking-info">
+                                <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
+                                <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
+                                <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
+                                <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
+                                {% if is_admin %}
+                                <td id="battery">{{ tracker_data.voltage|default:"-" }}V</td>
+                                <td id="signal">{{ tracker_data.gps_satellites|default:"0" }} satellites</td>
+                                {% endif %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Truck Status</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Current Status:</span>
+                            <span id="status" class="badge bg-{% if tracker_data.status == 'OK' %}success{% else %}danger{% endif %}">
+                                {{ tracker_data.status|default:"Unknown" }}
+                            </span>
+                        </li>
+                        {% if is_admin %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Alarm Status:</span>
+                            <span id="alarm" class="badge bg-{% if not tracker_data.alarm %}success{% else %}danger{% endif %}">
+                                {% if tracker_data.alarm %}Active{% else %}Normal{% endif %}
+                            </span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Movement:</span>
+                            <span id="movement" class="badge bg-{% if tracker_data.moving %}primary{% else %}secondary{% endif %}">
+                                {% if tracker_data.moving %}Moving{% else %}Stopped{% endif %}
+                            </span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Leaflet.js for Map Rendering -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Leaflet.awesome-markers for better markers -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    var map = L.map('map').setView([0, 0], 5);
-
+    // Initialize map with default center (will be updated with real data)
+    var map = L.map('map').setView([0, 0], 2);
+    
+    // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
     }).addTo(map);
 
-    var marker = L.marker([0, 0]).addTo(map);
+    // Create a custom truck icon
+    var truckIcon = L.AwesomeMarkers.icon({
+        icon: 'truck',
+        prefix: 'fa',
+        markerColor: 'blue',
+        iconColor: 'white'
+    });
 
-    function fetchTrackingData() {
-        fetch("{% url 'fetch_tracking_data' truck.id %}")
-        .then(response => response.json())
-        .then(data => {
-            if (data.latitude && data.longitude) {
-                var lat = parseFloat(data.latitude);
-                var lon = parseFloat(data.longitude);
-                var speed = data.speed || "0";
-                var updated_time = data.last_updated || "-";
+    // Add marker with custom icon
+    var marker = L.marker([0, 0], {icon: truckIcon}).addTo(map);
+    
+    // Add circle for accuracy if available
+    var accuracyCircle = L.circle([0, 0], {radius: 0}).addTo(map);
 
-                // Update Table Data
-                document.getElementById("latitude").innerText = lat;
-                document.getElementById("longitude").innerText = lon;
-                document.getElementById("speed").innerText = speed;
-                document.getElementById("last_updated").innerText = updated_time;
-
-                // Update Map Marker
-                marker.setLatLng([lat, lon]).bindPopup("Speed: " + speed + " km/h").openPopup();
-                map.setView([lat, lon], 12);
-            }
-        });
+    // Function to format date/time
+    function formatDateTime(timestamp) {
+        if (!timestamp) return '-';
+        const date = new Date(timestamp);
+        return date.toLocaleString();
     }
 
+    // Function to update the UI with new data
+    function updateUI(data) {
+        if (data.latitude && data.longitude) {
+            const lat = parseFloat(data.latitude);
+            const lon = parseFloat(data.longitude);
+            const speed = data.speed || "0";
+            const updatedTime = formatDateTime(data.last_updated);
+
+            // Update table data
+            document.getElementById("latitude").textContent = lat.toFixed(6);
+            document.getElementById("longitude").textContent = lon.toFixed(6);
+            document.getElementById("speed").textContent = speed;
+            document.getElementById("last_updated").textContent = updatedTime;
+            
+            // Update map marker
+            marker.setLatLng([lat, lon])
+                .bindPopup(`
+                    <b>${document.title}</b><br>
+                    Speed: ${speed} km/h<br>
+                    Last update: ${updatedTime}
+                `)
+                .openPopup();
+                
+            // Center map on marker with smooth transition
+            map.setView([lat, lon], 15, {animate: true, duration: 1});
+            
+            // Update accuracy circle if data available
+            if (data.accuracy) {
+                accuracyCircle.setLatLng([lat, lon])
+                    .setRadius(data.accuracy)
+                    .setStyle({color: '#3388ff', fillOpacity: 0.2});
+            }
+            
+            // Update status indicators for admin
+            {% if is_admin %}
+            if (data.voltage) {
+                document.getElementById("battery").textContent = data.voltage + "V";
+            }
+            if (data.gps_satellites) {
+                document.getElementById("signal").textContent = data.gps_satellites + " satellites";
+            }
+            if (data.status) {
+                const statusBadge = document.getElementById("status");
+                statusBadge.textContent = data.status;
+                statusBadge.className = `badge bg-${data.status === 'OK' ? 'success' : 'danger'}`;
+            }
+            if (data.alarm !== undefined) {
+                const alarmBadge = document.getElementById("alarm");
+                alarmBadge.textContent = data.alarm ? 'Active' : 'Normal';
+                alarmBadge.className = `badge bg-${data.alarm ? 'danger' : 'success'}`;
+            }
+            if (data.moving !== undefined) {
+                const movementBadge = document.getElementById("movement");
+                movementBadge.textContent = data.moving ? 'Moving' : 'Stopped';
+                movementBadge.className = `badge bg-${data.moving ? 'primary' : 'secondary'}`;
+            }
+            {% endif %}
+        }
+    }
+
+    // Function to fetch tracking data
+    function fetchTrackingData() {
+    fetch("{% url 'fetch_tracking_data' truck.id %}")
+        .then(response => {
+            if (!response.ok) {
+                // Log the full response for debugging
+                return response.text().then(text => {
+                    console.error('Failed response:', text);
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received data:', data); // Log the received data
+            if (data.error) {
+                console.error('Tracking error:', data.error);
+                if (!window.trackingDataLoaded) {
+                    alert('Error loading tracking data: ' + data.error);
+                }
+            } else {
+                updateUI(data);
+                window.trackingDataLoaded = true;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching tracking data:', error);
+            if (!window.trackingDataLoaded) {
+                alert('Failed to connect to tracking service. Please try again later.');
+            }
+        });
+}
+
+    // Initial data load
     fetchTrackingData();
-    setInterval(fetchTrackingData, 60000); // Auto-refresh every 60 seconds
+    
+    // Set up auto-refresh (every 30 seconds)
+    const refreshInterval = setInterval(fetchTrackingData, 30000);
+    
+    // Clean up interval when page is unloaded
+    window.addEventListener('beforeunload', () => {
+        clearInterval(refreshInterval);
+    });
 });
 </script>
+
+<style>
+    #map {
+        border-radius: 4px;
+    }
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .badge {
+        font-size: 0.85em;
+    }
+    .table th {
+        white-space: nowrap;
+    }
+</style>
 {% endblock %}
