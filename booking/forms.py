@@ -82,6 +82,7 @@ class TruckImageForm(forms.ModelForm):
         return images
                 
 
+
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking

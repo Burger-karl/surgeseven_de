@@ -76,6 +76,7 @@ class TruckImage(models.Model):
         return 0
 
 
+
 class Booking(models.Model):
     STATES_CHOICES = [
         ('abia', 'Abia'), ('abuja', 'Abuja'), ('adamawa', 'Adamawa'), ('akwa_ibom', 'Akwa Ibom'), ('anambra', 'Anambra'),

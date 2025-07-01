@@ -38,6 +38,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+
 def send_otp_email(to_email, otp_code, subject="Your Verification Code"):
     """
     Send OTP email with HTML template

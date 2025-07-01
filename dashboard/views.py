@@ -40,6 +40,7 @@ class ClientHomeView(ListView):
         return context
 
 
+
 @method_decorator(login_required, name='dispatch')
 class TruckOwnerHomeView(ListView):
     model = Truck

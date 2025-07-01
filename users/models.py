@@ -40,6 +40,7 @@ class Referral(models.Model):
 
     def __str__(self):
         return f"{self.referrer.email} referred {self.referred_user.email}"
+    
 
 
 class ReferralBonus(models.Model):

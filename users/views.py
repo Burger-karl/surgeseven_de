@@ -319,6 +319,7 @@ class ResendOTPView(View):
             messages.error(request, "Failed to send OTP. Please try again.")
             return redirect('resend-otp')
         
+        
 # class LoginView(FormView):
 #     form_class = LoginForm
 #     template_name = 'users/login.html'

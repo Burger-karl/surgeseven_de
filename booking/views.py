@@ -66,7 +66,8 @@ class TruckCreateView(CreateView):
             messages.success(self.request, "Truck created successfully with 3 images!")
             return super().form_valid(form)
         else:
-            return self.form_invalid(form)        
+            return self.form_invalid(form)     
+           
 
 
 # Truck List View

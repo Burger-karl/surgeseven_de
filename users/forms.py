@@ -147,3 +147,4 @@ class AdminUserCreationForm(UserCreationForm):
         self.fields['is_verified'].widget.attrs.update({'class': 'form-check-input'})
         self.fields['is_staff'].widget.attrs.update({'class': 'form-check-input'})
         self.fields['is_superuser'].widget.attrs.update({'class': 'form-check-input'})
+        
