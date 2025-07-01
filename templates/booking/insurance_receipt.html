@@ -8,7 +8,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h2>Insurance Receipt</h2>
                 <ol>
-                    <li><a href="#">Home</a></li>
+                    <li><a href="{% url 'client_home' %}">Home</a></li>
                     <li><a href="{% url 'booking_list' %}">Bookings</a></li>
                     <li>Insurance Receipt</li>
                 </ol>
@@ -21,50 +21,77 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header text-center">
+            <div class="card shadow">
+                <div class="card-header text-center bg-light">
                     <div class="row">
                         <div class="col-md-6">
-                            <a href="#" class="logo me-auto me-lg-0">
-                                <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="" style="height: 100px; width: 100px;" class="img-fluid">
-                            </a>
+                            <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="SurgeSeven Logo" style="height: 80px;">
                         </div>
-                        
+                        <div class="col-md-6">
+                            <img src="{% static 'assets/img/veritas-logo.png' %}" alt="Veritas Logo" style="height: 80px;">
+                        </div>
                     </div>
-                    <h2 class="text-warning mt-3"><strong>Insurance Receipt</strong></h3>
+                    <h2 class="text-warning mt-3">Insurance Receipt</h2>
                 </div>
-                <br>
-                <div class="card-body text-center">
-                    <h5 class="text-warning"><strong>Policy Number: INS-{{ booking.booking_code }}</strong></h5>
-                    <p class="text-warning"><strong>Booking ID: {{ booking.id }}</strong></p>
-                    <hr>
-                    
-                    <div class="text-start">
-                        <h5 class="text-warning"><strong>Policy Details</strong></h5>
-                        <p class="text-warning"><strong>Insurance Company:</strong> Veritas Kapital Assurance</p>
-                        <p class="text-warning"><strong>Policy Holder:</strong> {{ booking.client.get_full_name }}</p>
-                        <p class="text-warning"><strong>Policy Date:</strong> {{ booking.booked_at|date:"F j, Y" }}</p>
-                        <hr>
-                        
-                        <h5 class="text-warning"><strong>Coverage Details</strong></h5>
-                        <p class="text-warning"><strong>Product Name:</strong> {{ booking.product_name }}</p>
-                        <p class="text-warning"><strong>Product Value:</strong> &#8358;{{ booking.product_value }}</p>
-                        <p class="text-warning"><strong>Insurance Premium (1%):</strong> &#8358;{{ booking.insurance_payment }}</p>
-                        <p class="text-warning"><strong>Coverage Period:</strong> From pickup to final delivery</p>
-                        <hr>
-                        
-                        <h5 class="text-warning"><strong>Terms & Conditions</strong></h5>
-                        <p class="text-muted">1. This insurance covers the declared product value against loss or damage during transit.</p>
-                        <p class="text-muted">2. Claims must be reported within 24 hours of delivery with supporting documentation.</p>
-                        <p class="text-muted">3. Veritas Kapital Assurance reserves the right to verify all claims.</p>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4 class="text-dark">Policy #INS-{{ booking.booking_code }}</h4>
+                        <p class="text-muted">Issued on {{ booking.booked_at|date:"F j, Y" }}</p>
                     </div>
                     
-                    <hr>
-                    <p class="text-warning"><strong>Receipt Generated At: {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</strong></p>
+                    <div class="mb-4">
+                        <h5 class="text-warning">Policy Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Policy Holder:</strong> {{ booking.client.get_full_name }}</p>
+                                <p><strong>Email:</strong> {{ booking.client.email }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Booking Reference:</strong> {{ booking.booking_code }}</p>
+                                <p><strong>Coverage Period:</strong> From pickup to final delivery</p>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="mt-4">
-                        <a href="{% url 'booking_receipt' booking.booking_code %}" class="btn btn-warning">
-                            View Booking Receipt
+                    <div class="mb-4">
+                        <h5 class="text-warning">Coverage Summary</h5>
+                        <table class="table">
+                            <tr>
+                                <td>Product Name:</td>
+                                <td>{{ booking.product_name }}</td>
+                            </tr>
+                            <tr>
+                                <td>Product Value:</td>
+                                <td>₦{{ booking.product_value }}</td>
+                            </tr>
+                            <tr>
+                                <td>Insurance Premium (1%):</td>
+                                <td>₦{{ booking.insurance_payment }}</td>
+                            </tr>
+                            <tr class="table-active">
+                                <td><strong>Coverage Amount:</strong></td>
+                                <td><strong>₦{{ booking.product_value }}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        <h5 class="text-warning">Terms & Conditions</h5>
+                        <ol class="text-muted">
+                            <li>This insurance covers the declared product value against loss or damage during transit.</li>
+                            <li>Claims must be reported within 24 hours of delivery with supporting documentation.</li>
+                            <li>Veritas Kapital Assurance reserves the right to verify all claims.</li>
+                            <li>Policy is valid only for the duration of the booked transportation.</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <a href="{% url 'generate_receipt' booking.booking_code %}" class="btn btn-warning me-2">
+                            <i class="bi bi-receipt"></i> View Booking Receipt
+                        </a>
+                        <a href="javascript:window.print()" class="btn btn-outline-secondary">
+                            <i class="bi bi-printer"></i> Print Policy
                         </a>
                     </div>
                 </div>

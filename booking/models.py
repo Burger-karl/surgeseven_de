@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from users.models import User
+from django.core.exceptions import ValidationError
 
 
 class Truck(models.Model):
@@ -38,15 +39,41 @@ class Truck(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.owner.username})"
+    
+    
+    def clean(self):
+        if self.pk and self.images.count() != 3:
+            raise ValidationError("A truck must have exactly 3 images.")
 
 
 
 class TruckImage(models.Model):
     truck = models.ForeignKey(Truck, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to='trucks/', default='service-44.jpg')
+    order = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['order']
 
     def __str__(self):
         return f"Image for {self.truck.name}"
+    
+    @property
+    def is_valid_image(self):
+        """Check if the stored file is a valid image"""
+        try:
+            from PIL import Image
+            Image.open(self.image)
+            return True
+        except:
+            return False
+            
+    @property
+    def filesize(self):
+        """Return filesize in MB"""
+        if self.image:
+            return self.image.size / (1024 * 1024)
+        return 0
 
 
 class Booking(models.Model):

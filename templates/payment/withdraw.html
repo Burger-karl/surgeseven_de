@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Credit Withdrawal{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="{% url 'client_home' %}">Home</a></li>
+                <li>Withdrawal</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block main-content %}
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Withdraw Funds</h5>
+        <div class="alert alert-info">
+            Available Balance: ₦{{ balance }}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Request Withdrawal</button>
+        </form>
+        
+        <div class="mt-4">
+            <h6>Your Withdrawal Methods</h6>
+            {% for method in methods %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h6>{{ method.get_method_type_display }}</h6>
+                    <pre>{{ method.details }}</pre>
+                    <span class="badge bg-{% if method.is_verified %}success{% else %}warning{% endif %}">
+                        {% if method.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% empty %}
+            <p>No withdrawal methods added. <a href="{% url 'add_withdrawal_method' %}">Add one now</a></p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

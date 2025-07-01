@@ -161,12 +161,6 @@
                         
                     </li>
 
-                    {% with request.user.booking_set.last as booking %}
-                        {% if booking and booking.truck.tracker_id %}
-                            <li><a href="{% url 'tracking_dashboard' booking.truck.id %}">Track My Delivery</a></li>
-                        {% endif %}
-                    {% endwith %}
-
                     {% elif request.user.user_type == 'truck_owner' %}
                     
                     <li><a class="nav-link scrollto active" href="{% url 'truck_owner_home' %}">Home</a></li>
@@ -188,13 +182,6 @@
                         </ul>
                     </li>
                     
-                    {% for truck in request.user.truck_set.all %}
-                        {% if truck.tracker_id %}
-                            <li><a href="{% url 'tracking_dashboard' truck.id %}">Track {{ truck.name }}</a></li>
-                        {% endif %}
-                    {% empty %}
-                        <li>No trucks available for tracking</li>
-                    {% endfor %}
 
                     {% elif request.user.user_type == 'admin' %}
                     
@@ -231,10 +218,10 @@
                             <li><a href="{% url 'admin_users_list' %}" class="dropdown-item">Users List</a></li>
                         </ul>
                     </li>
-                    {% endif %}
-
                     
-                                        
+                    
+                    {% endif %}
+                    
                 </ul>
     
                 

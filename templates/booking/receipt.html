@@ -8,7 +8,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h2>Receipt</h2>
                 <ol>
-                    <li><a href="#">Home</a></li>
+                    <li><a href="{% url 'client_home' %}">Home</a></li>
                     <li><a href="{% url 'booking_list' %}">Bookings</a></li>
                     <li>Receipt</li>
                 </ol>
@@ -21,37 +21,66 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header text-center">
-                    <a href="#" class="logo me-auto me-lg-0"><img src="{% static 'assets/img/surge-seven-3.png' %}" alt="" style="height: 100px; width: 100px;" class="img-fluid"></a> <br>
-                    <h2 class="text-warning"><strong>Receipt</strong></h3>
+            <div class="card shadow">
+                <div class="card-header text-center bg-light">
+                    <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="SurgeSeven Logo" style="height: 80px;">
+                    <h2 class="text-warning mt-3">Booking Receipt</h2>
                 </div>
-                <br>
-                <div class="card-body text-center">
-                    <h5 class="text-warning"><strong>Booking ID: {{ booking.id }}</strong></h5>
-                    <p class="text-warning"><strong>Truck: {{ booking.truck.name }}</strong></p>
-                    <p class="text-warning"><strong>Product: {{ booking.product_name }}</strong></p>
-                    <p class="text-warning"><strong>Weight: {{ booking.product_weight }} kg</strong></p>
-                    <p class="text-warning"><strong>Pickup Location: {{ booking.pickup_state }}</strong></p>
-                    <p class="text-warning"><strong>Destination: {{ booking.destination_state }}</strong></p>
-                    <hr>
-                    <p class="text-warning"><strong>Delivery Cost: &#8358;{{ booking.delivery_cost }}</strong></p>
-                    {% if booking.insurance_payment > 0 %}
-                        <p class="text-warning"><strong>Insurance Payment (1%): &#8358;{{ booking.insurance_payment }}</strong></p>
-                        <p class="text-muted"><small>Insured by Veritas Kapital Assurance</small></p>
-                    {% endif %}
-                    <p class="text-warning"><strong>Total Cost: &#8358;{{ booking.total_delivery_cost }}</strong></p>
-                    <hr>
-                    <p class="text-warning"><strong>Date of Booking: {{ booking.booked_at|date:"F j, Y, g:i a" }}</strong></p>
-                    <p class="text-warning"><strong>Receipt Generated At: {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</strong></p>
-
-                    {% if booking.insurance_payment > 0 %}
-                        <div class="mt-4">
-                            <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning">
-                                Download Insurance Receipt
-                            </a>
+                
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4 class="text-dark">Booking #{{ booking.booking_code }}</h4>
+                        <p class="text-muted">Date: {{ booking.booked_at|date:"F j, Y, g:i a" }}</p>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="text-warning">Booking Details</h5>
+                            <p><strong>Truck:</strong> {{ truck_name }}</p>
+                            <p><strong>Product:</strong> {{ product_name }}</p>
+                            <p><strong>Weight:</strong> {{ product_weight_display }}</p>
                         </div>
-                    {% endif %}
+                        <div class="col-md-6">
+                            <h5 class="text-warning">Route Details</h5>
+                            <p><strong>From:</strong> {{ pickup_state_display }}</p>
+                            <p><strong>To:</strong> {{ destination_state_display }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">{{ booking_status_display }}</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        <h5 class="text-warning">Payment Summary</h5>
+                        <table class="table">
+                            <tr>
+                                <td>Delivery Cost:</td>
+                                <td class="text-end">₦{{ booking.delivery_cost }}</td>
+                            </tr>
+                            {% if booking.insurance_payment > 0 %}
+                            <tr>
+                                <td>Insurance Payment (1%):</td>
+                                <td class="text-end">₦{{ booking.insurance_payment }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="table-active">
+                                <td><strong>Total Paid:</strong></td>
+                                <td class="text-end"><strong>₦{{ booking.total_delivery_cost }}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <p class="text-muted">Receipt generated on {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</p>
+                        
+                        {% if booking.insurance_payment > 0 %}
+                        <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning me-2">
+                            <i class="bi bi-file-earmark-text"></i> View Insurance Receipt
+                        </a>
+                        {% endif %}
+                        
+                        <a href="javascript:window.print()" class="btn btn-outline-secondary">
+                            <i class="bi bi-printer"></i> Print Receipt
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

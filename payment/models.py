@@ -57,3 +57,35 @@ class Payment(models.Model):
                     user_subscription.save()
             return True
         return False
+
+
+
+class WithdrawalMethod(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    method_type = models.CharField(max_length=20, choices=[
+        ('bank', 'Bank Transfer'),
+        ('mobile_money', 'Mobile Money')
+    ])
+    details = models.JSONField()  # Stores method-specific details
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class WithdrawalRequest(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('rejected', 'Rejected')
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    method = models.ForeignKey(WithdrawalMethod, on_delete=models.SET_NULL, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reference = models.CharField(max_length=50, unique=True)
+    admin_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    flutterwave_transfer_id = models.CharField(max_length=100, blank=True, null=True)
+    flutterwave_reference = models.CharField(max_length=100, blank=True, null=True)

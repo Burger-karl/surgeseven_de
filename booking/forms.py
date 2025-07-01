@@ -1,10 +1,14 @@
+from django.conf import settings
+import os
 from django import forms
 from .models import Truck, Booking, TruckImage
+from django.core.exceptions import ValidationError
+
 
 class TruckForm(forms.ModelForm):
     class Meta:
         model = Truck
-        fields = ['name', 'weight_range', 'state', 'local_government', 'available']
+        fields = ['name', 'weight_range', 'state', 'local_government']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter truck name'}),
             'weight_range': forms.Select(attrs={'class': 'form-control'}),
@@ -13,14 +17,70 @@ class TruckForm(forms.ModelForm):
         }
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+    
+
 class TruckImageForm(forms.ModelForm):
+    images = MultipleFileField(
+        label='Upload 3 Images of the Truck',
+        help_text='Please upload exactly 3 images (max 5MB each) showing different angles of the truck.',
+        widget=MultipleFileInput(attrs={
+            'class': 'form-control',
+            'multiple': True,
+            'accept': 'image/*'
+        })
+    )
+    
     class Meta:
         model = TruckImage
-        fields = ['image']
-        widgets = {
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-        }
-
+        fields = []
+        
+    def clean_images(self):
+        images = self.files.getlist('images')
+        
+        # Validate exactly 3 images
+        if len(images) != 3:
+            raise ValidationError("Exactly 3 images must be uploaded.")
+        
+        # Validate each image
+        for image in images:
+            if not image.content_type.startswith('image/'):
+                raise ValidationError(
+                    f"File {image.name} is not an image. Only image files are allowed."
+                )
+                
+            # Check file extension
+            ext = os.path.splitext(image.name)[1].lower()
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            if ext not in valid_extensions:
+                raise ValidationError(
+                    f"Unsupported file extension: {ext}. Supported formats: {', '.join(valid_extensions)}"
+                )
+            
+            # Check file size (5MB limit)
+            max_size = getattr(settings, 'MAX_IMAGE_UPLOAD_SIZE', 5 * 1024 * 1024)  # 5MB default
+            if image.size > max_size:
+                raise ValidationError(
+                    f"File {image.name} is too large. Maximum size is {max_size/1024/1024}MB."
+                )
+                
+        return images
+                
 
 class BookingForm(forms.ModelForm):
     class Meta:

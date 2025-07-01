@@ -66,22 +66,23 @@
 
             <!-- Swiper Container -->
             <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
+                <!-- In the swiper-wrapper section -->
                 <div class="swiper-wrapper">
-                    {% for truck in available_trucks|slice:":10" %} <!-- Limit to 10 trucks -->
+                    {% for truck in available_trucks|slice:":10" %}
                     <div class="swiper-slide">
                         <div class="truck-item">
-                            <!-- Check if the truck has any images -->
-                            {% if truck.images.all %}
-                                <!-- Display the first image -->
-                                <img src="{{ truck.images.first.image.url }}" class="truck-img" alt="Truck Image">
-                            {% else %}
-                                <!-- Display a default image if no images are available -->
-                                <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
-                            {% endif %}
+                            <!-- Show only the first image -->
+                            {% with truck.images.all|first as first_image %}
+                                {% if first_image %}
+                                    <img src="{{ first_image.image.url }}" class="truck-img" alt="Truck Image">
+                                {% else %}
+                                    <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
+                                {% endif %}
+                            {% endwith %}
                             <h3>{{ truck.get_weight_range_display }}</h3>
                             <a href="{% url 'booking-create' truck.id %}" class="btn btn-primary mt-3">Book Now</a>
                         </div>
-                    </div><!-- End truck item -->
+                    </div>
                     {% empty %}
                     <div class="swiper-slide">
                         <div class="alert alert-warning" role="alert">
@@ -228,7 +229,16 @@
 
 
 
+
     
+    <script>
+        document.getElementById('id_image').addEventListener('change', function(e) {
+            if (this.files.length !== 3) {
+                alert('Please select exactly 3 images.');
+                this.value = '';
+            }
+        });
+    </script>
 
 {% endblock %}
 

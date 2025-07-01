@@ -1,60 +1,53 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}Receipt for Booking {{ booking.id }}{% endblock title %}
-
-{% block banner-slider %}
-    <section class="breadcrumbs">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>Receipt</h2>
-                <ol>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="{% url 'booking_list' %}">Bookings</a></li>
-                    <li>Receipt</li>
-                </ol>
-            </div>
-        </div>
-    </section>
-{% endblock %}
-
-{% block main-content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header text-center">
-                    <a href="#" class="logo me-auto me-lg-0"><img src="{% static 'assets/img/surge-seven-3.png' %}" alt="" style="height: 100px; width: 100px;" class="img-fluid"></a> <br>
-                    <h2 class="text-warning"><strong>Receipt</strong></h3>
-                </div>
-                <br>
-                <div class="card-body text-center">
-                    <h5 class="text-warning"><strong>Booking ID: {{ booking.id }}</strong></h5>
-                    <p class="text-warning"><strong>Truck: {{ booking.truck.name }}</strong></p>
-                    <p class="text-warning"><strong>Product: {{ booking.product_name }}</strong></p>
-                    <p class="text-warning"><strong>Weight: {{ booking.product_weight }} kg</strong></p>
-                    <p class="text-warning"><strong>Pickup Location: {{ booking.pickup_state }}</strong></p>
-                    <p class="text-warning"><strong>Destination: {{ booking.destination_state }}</strong></p>
-                    <hr>
-                    <p class="text-warning"><strong>Delivery Cost: &#8358;{{ booking.delivery_cost }}</strong></p>
-                    {% if booking.insurance_payment > 0 %}
-                        <p class="text-warning"><strong>Insurance Payment (1%): &#8358;{{ booking.insurance_payment }}</strong></p>
-                        <p class="text-muted"><small>Insured by Veritas Kapital Assurance</small></p>
-                    {% endif %}
-                    <p class="text-warning"><strong>Total Cost: &#8358;{{ booking.total_delivery_cost }}</strong></p>
-                    <hr>
-                    <p class="text-warning"><strong>Date of Booking: {{ booking.booked_at|date:"F j, Y, g:i a" }}</strong></p>
-                    <p class="text-warning"><strong>Receipt Generated At: {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</strong></p>
-
-                    {% if booking.insurance_payment > 0 %}
-                        <div class="mt-4">
-                            <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning">
-                                Download Insurance Receipt
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .logo { max-height: 80px; }
+        .content { padding: 20px; }
+        .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+        .receipt-details { margin: 20px 0; }
+        .receipt-item { margin-bottom: 10px; }
+        .total { font-weight: bold; font-size: 1.2em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://yourdomain.com/static/assets/img/surge-seven-3.png" alt="SurgeSeven Logo" class="logo">
+        <h2>Booking Receipt</h2>
     </div>
-</div>
-{% endblock %}
+    
+    <div class="content">
+        <p>Hello {{ booking.client.username }},</p>
+        <p>Thank you for your booking with SurgeSeven. Here are your receipt details:</p>
+        
+        <div class="receipt-details">
+            <div class="receipt-item"><strong>Booking ID:</strong> {{ booking.booking_code }}</div>
+            <div class="receipt-item"><strong>Truck:</strong> {{ booking.truck.name }}</div>
+            <div class="receipt-item"><strong>Product:</strong> {{ booking.product_name }}</div>
+            <div class="receipt-item"><strong>Weight:</strong> {{ booking.get_product_weight_display }}</div>
+            <div class="receipt-item"><strong>Pickup:</strong> {{ booking.get_pickup_state_display }}</div>
+            <div class="receipt-item"><strong>Destination:</strong> {{ booking.get_destination_state_display }}</div>
+            <div class="receipt-item"><strong>Delivery Cost:</strong> ₦{{ booking.delivery_cost }}</div>
+            
+            {% if booking.insurance_payment > 0 %}
+            <div class="receipt-item"><strong>Insurance Payment:</strong> ₦{{ booking.insurance_payment }}</div>
+            {% endif %}
+            
+            <div class="total">Total Paid: ₦{{ booking.total_delivery_cost }}</div>
+        </div>
+        
+        <p>You can view your receipt online at: <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'generate_receipt' booking.booking_code %}">View Receipt</a></p>
+        
+        {% if booking.insurance_payment > 0 %}
+        <p>Your insurance receipt is attached to this email.</p>
+        {% endif %}
+    </div>
+    
+    <div class="footer">
+        <p>Thank you for choosing SurgeSeven Logistics</p>
+        <p>&copy; {% now "Y" %} SurgeSeven. All rights reserved.</p>
+    </div>
+</body>
+</html>

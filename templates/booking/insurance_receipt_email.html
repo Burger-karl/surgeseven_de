@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .logo { max-height: 80px; }
+        .content { padding: 20px; }
+        .footer { margin-top: 20px; font-size: 12px; color: #777; text-align: center; }
+        .policy-details { margin: 20px 0; border: 1px solid #eee; padding: 15px; }
+        .policy-item { margin-bottom: 10px; }
+        .terms { margin-top: 20px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://yourdomain.com/static/assets/img/surge-seven-3.png" alt="SurgeSeven Logo" class="logo">
+        <h2>Insurance Receipt</h2>
+    </div>
+    
+    <div class="content">
+        <div class="policy-details">
+            <h3>Policy Details</h3>
+            <div class="policy-item"><strong>Policy Number:</strong> INS-{{ booking.booking_code }}</div>
+            <div class="policy-item"><strong>Booking ID:</strong> {{ booking.booking_code }}</div>
+            <div class="policy-item"><strong>Insurance Company:</strong> Veritas Kapital Assurance</div>
+            <div class="policy-item"><strong>Policy Holder:</strong> {{ booking.client.get_full_name }}</div>
+            <div class="policy-item"><strong>Policy Date:</strong> {{ booking.booked_at|date:"F j, Y" }}</div>
+        </div>
+        
+        <div class="policy-details">
+            <h3>Coverage Details</h3>
+            <div class="policy-item"><strong>Product Name:</strong> {{ booking.product_name }}</div>
+            <div class="policy-item"><strong>Product Value:</strong> ₦{{ booking.product_value }}</div>
+            <div class="policy-item"><strong>Insurance Premium:</strong> ₦{{ booking.insurance_payment }}</div>
+            <div class="policy-item"><strong>Coverage Period:</strong> From pickup to final delivery</div>
+        </div>
+        
+        <div class="terms">
+            <h3>Terms & Conditions</h3>
+            <ol>
+                <li>This insurance covers the declared product value against loss or damage during transit.</li>
+                <li>Claims must be reported within 24 hours of delivery with supporting documentation.</li>
+                <li>Veritas Kapital Assurance reserves the right to verify all claims.</li>
+            </ol>
+        </div>
+        
+        <p>You can view your insurance receipt online at: <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'insurance_receipt' booking.booking_code %}">View Insurance Receipt</a></p>
+    </div>
+    
+    <div class="footer">
+        <p>Thank you for choosing SurgeSeven Logistics</p>
+        <p>&copy; {% now "Y" %} SurgeSeven. All rights reserved.</p>
+    </div>
+</body>
+</html>

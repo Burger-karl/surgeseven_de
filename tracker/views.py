@@ -15,39 +15,6 @@ logger = logging.getLogger(__name__)
 def is_client_or_truck_owner(user):
     return user.user_type in ["client", "truck_owner"]
 
-# @method_decorator(login_required, name='dispatch')
-# class TrackingDashboardView(View):
-#     """
-#     Class-Based View for real-time tracking dashboard with role-based access
-#     """
-#     template_name = "tracker/tracking_dashboard.html"
-
-#     def get(self, request, truck_id):
-#         truck = get_object_or_404(Truck, id=truck_id, tracker_id__isnull=False)
-        
-#         # Check access permissions
-#         if not self._check_access(request.user, truck):
-#             return HttpResponseForbidden("You do not have access to this truck.")
-
-#         tracker_data = get_tracker_data(truck.tracker_id, request.user)
-
-#         context = {
-#             "truck": truck,
-#             "tracker_data": tracker_data if tracker_data else None,
-#             "is_admin": request.user.is_staff
-#         }
-#         return render(request, self.template_name, context)
-
-#     def _check_access(self, user, truck):
-#         """Helper method to check access permissions"""
-#         if user.is_staff:
-#             return True
-#         if user.user_type == "truck_owner" and truck.owner == user:
-#             return True
-#         if user.user_type == "client" and truck.bookings.filter(client=user).exists():
-#             return True
-#         return False
-
 
 @method_decorator(login_required, name='dispatch')
 class TrackingDashboardView(View):

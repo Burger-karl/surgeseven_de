@@ -150,44 +150,34 @@
     
 {% block main-content %}
     
-     <!-- ======= About Section ======= -->
-     <section id="about" class="about">
+    <!-- ======= About Section ======= -->
+    <section id="about" class="about">
         <div class="container" data-aos="fade-up">
 
             <div class="row">
                 <div class="col-lg-6 order-1 order-lg-2" data-aos="zoom-in" data-aos-delay="100">
                     <form method="POST" enctype="multipart/form-data" class="shadow mt-5 p-5">
                         <h3>Register your Truck With <span class="text-warning">Us</span></h3>
-                    
+                        
                         {% csrf_token %}
                         {% for fm in form %}
                             {{fm.label_tag}} {{fm}} <small class="text-danger">{{fm.errors|striptags}}</small>
                             <br>
                         {% endfor %}
-                        {% for img_field in image_form %}
-                            {{ img_field.label_tag }} {{ img_field }} <small class="text-danger">{{ img_field.errors|striptags }}</small>
-                            <br>
-                        {% endfor %}
-                        <input type="submit" value="Upload Truck" class="btn text-white btn-warning"> <br>
-    
-                        <div class="text-center text-primary fw-bold">
-                            <!-- <small class="text-white">Existing User ? <a href="{% url 'login' %}" class="text-warning">Login Now</a></small> -->
+                        
+                        <!-- Image upload section -->
+                        <div class="mb-3">
+                            <label for="id_images" class="form-label">Upload 3 Images of the Truck</label>
+                            <input type="file" name="images" class="form-control" multiple required id="id_images" accept="image/*">
+                            <small class="text-muted">Please upload exactly 3 images (max 5MB each) showing different angles of the truck.</small>
+                            {% if image_form.images.errors %}
+                                <small class="text-danger">{{ image_form.images.errors|striptags }}</small>
+                            {% endif %}
                         </div>
-    
-                        {% if form.non_field_errors %}
-                            {% for error in form.non_field_errors %}
-                                <p class="alert alert-danger my-3">{{error}}</p>
-                            {% endfor %}
-                        {% endif %}
-    
-                        {% if messages %}
-                            {% for msg in messages %}
-                                <div class="alert alert-{{msg.tags}}" role="alert">
-                                    {{msg}}
-                                </div>
-                            {% endfor %}
-                        {% endif %}
+                        
+                        <input type="submit" value="Upload Truck" class="btn text-white btn-warning"> <br>
                     </form>
+
                 </div>
         
                 <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content">
@@ -213,18 +203,48 @@
 
 
 
-
-
-
-
-    <!-- <div class="container mt-5 mb-3">
-        <div class="row my-3">
-            <div class="col-sm-6 offset-sm-3">
-
+    
+    
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('id_images');
+            if (imageInput) {
+                const maxSize = 5 * 1024 * 1024; // 5MB in bytes
                 
-            </div>
-        </div>
-    </div> -->
+                imageInput.addEventListener('change', function(e) {
+                    const files = this.files;
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                    
+                    if (files.length !== 3) {
+                        alert('Please select exactly 3 images.');
+                        this.value = '';
+                        return;
+                    }
+                    
+                    for (let i = 0; i < files.length; i++) {
+                        // Check file type
+                        if (!validTypes.includes(files[i].type)) {
+                            alert(`File ${files[i].name} is not a valid image type (JPEG, PNG, GIF)`);
+                            this.value = '';
+                            return;
+                        }
+                        
+                        // Check file size
+                        if (files[i].size > maxSize) {
+                            const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2);
+                            alert(`File ${files[i].name} is too large. Maximum size is ${maxSizeMB}MB.`);
+                            this.value = '';
+                            return;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+
+
 
 {% endblock main-content %}
 

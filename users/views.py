@@ -10,6 +10,10 @@ from django.urls import reverse_lazy
 from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm, AdminUserCreationForm
 from .models import User, OTP, PasswordResetToken, Profile, Referral
 from subscriptions.models import SubscriptionPlan, UserSubscription
+from .emails import send_otp_email
+from googleapiclient.discovery import build
+import base64
+from email.mime.text import MIMEText
 from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
@@ -17,6 +21,9 @@ from .utils import generate_random_otp
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
@@ -36,14 +43,76 @@ def is_admin(user):
 
 OTP_EXPIRATION_MINUTES = 10
 
+# def send_gmail(to_email, subject, body):
+#     """Helper function to send emails using Gmail API"""
+#     try:
+#         creds = get_gmail_credentials()
+#         service = build('gmail', 'v1', credentials=creds)
+        
+#         message = MIMEText(body)
+#         message['to'] = to_email
+#         message['subject'] = subject
+#         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        
+#         service.users().messages().send(
+#             userId='me',
+#             body={'raw': raw}
+#         ).execute()
+#         return True
+#     except Exception as e:
+#         logger.error(f"Error sending email: {e}")  # Add proper logging
+#         return False
+    
+
+# class RegisterView(View):
+#     form_class = RegisterForm
+#     template_name = 'users/register.html'
+    
+#     def get(self, request, *args, **kwargs):
+#         referral_code = request.GET.get('ref')  # Get referral code from URL
+#         form = self.form_class(initial={'referral_code': referral_code})  # Pass referral code to form
+#         return render(request, self.template_name, {'form': form})
+
+#     def post(self, request, *args, **kwargs):
+#         form = self.form_class(request.POST)
+#         if form.is_valid():
+#             user_data = {
+#                 'email': form.cleaned_data['email'],
+#                 'username': form.cleaned_data['username'],
+#                 'password1': form.cleaned_data['password1'],
+#                 'password2': form.cleaned_data['password2'],
+#                 'user_type': form.cleaned_data['user_type'],
+#                 'referral_code': form.cleaned_data['referral_code']  # Add referral code to user_data
+#             }
+
+#             # Set is_staff and is_superuser flags for admin users
+#             if user_data['user_type'] == 'admin':
+#                 user_data['is_staff'] = True
+#                 user_data['is_superuser'] = True
+
+#             # Store user data in session until verification
+#             request.session['user_data'] = user_data
+
+#             # Generate and send OTP
+#             otp = get_random_string(length=6, allowed_chars='0123456789')
+#             request.session['otp'] = otp
+#             send_mail(
+#                 'Verify your email',
+#                 f'Your OTP is {otp}',
+#                 'from@example.com',
+#                 [user_data['email']],
+#             )
+#             messages.success(request, "An OTP has been sent to your email for verification.")
+#             return redirect('verify-email')
+#         return render(request, self.template_name, {'form': form})
 
 class RegisterView(View):
     form_class = RegisterForm
     template_name = 'users/register.html'
     
     def get(self, request, *args, **kwargs):
-        referral_code = request.GET.get('ref')  # Get referral code from URL
-        form = self.form_class(initial={'referral_code': referral_code})  # Pass referral code to form
+        referral_code = request.GET.get('ref')
+        form = self.form_class(initial={'referral_code': referral_code})
         return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
@@ -55,29 +124,34 @@ class RegisterView(View):
                 'password1': form.cleaned_data['password1'],
                 'password2': form.cleaned_data['password2'],
                 'user_type': form.cleaned_data['user_type'],
-                'referral_code': form.cleaned_data['referral_code']  # Add referral code to user_data
+                'referral_code': form.cleaned_data['referral_code']
             }
 
-            # Set is_staff and is_superuser flags for admin users
             if user_data['user_type'] == 'admin':
                 user_data['is_staff'] = True
                 user_data['is_superuser'] = True
 
-            # Store user data in session until verification
             request.session['user_data'] = user_data
-
-            # Generate and send OTP
             otp = get_random_string(length=6, allowed_chars='0123456789')
             request.session['otp'] = otp
-            send_mail(
-                'Verify your email',
-                f'Your OTP is {otp}',
-                'from@example.com',
-                [user_data['email']],
+            
+            # Send OTP using SendGrid
+            email_sent = send_otp_email(
+                to_email=user_data['email'],
+                otp_code=otp,
+                subject='Verify your SurgeSeven account'
             )
-            messages.success(request, "An OTP has been sent to your email for verification.")
-            return redirect('verify-email')
+
+            
+            if email_sent:
+                messages.success(request, "An OTP has been sent to your email for verification.")
+                return redirect('verify-email')
+            else:
+                messages.error(request, "Failed to send OTP. Please try again.")
+                return render(request, self.template_name, {'form': form})
+                
         return render(request, self.template_name, {'form': form})
+
         
 
 class VerifyEmailView(FormView):
@@ -158,56 +232,93 @@ class ReferralView(View):
         return render(request, self.template_name, context)
 
 
-class ResendOTPView(View):
-    """
-    View for resending OTP to a user's email.
-    """
+# class ResendOTPView(View):
+#     """
+#     View for resending OTP to a user's email.
+#     """
 
+#     def get(self, request, *args, **kwargs):
+#         """
+#         Renders the resend OTP page.
+#         """
+#         return render(request, 'users/resend_otp.html')
+
+#     def post(self, request, *args, **kwargs):
+#         """
+#         Handles the resend OTP request.
+#         """
+#         email = request.POST.get('email')
+#         if not email:
+#             messages.error(request, "Email is required.")
+#             return redirect('resend-otp')
+
+#         try:
+#             user = get_object_or_404(User, email=email)  # Get user or return 404
+#         except User.DoesNotExist:
+#             messages.error(request, "User with this email does not exist.")
+#             return redirect('resend-otp')
+
+#         # Generate a new OTP
+#         otp = generate_random_otp()  # Use the utility function
+#         otp_instance, created = OTP.objects.update_or_create(
+#             user=user,
+#             defaults={'otp': otp, 'created_at': timezone.now()}
+#         )
+
+#         # Send OTP via email
+#         try:
+#             send_mail(
+#                 'Your OTP Code',
+#                 f'Use this OTP to verify your email: {otp}',
+#                 'from@example.com',
+#                 [email],
+#                 fail_silently=False,
+#             )
+#             messages.success(request, "OTP resent successfully.")
+#         except Exception as e:
+#             messages.error(request, f"Failed to send OTP. Error: {str(e)}")
+#             return redirect('resend-otp')
+
+#         return redirect('verify-email')
+
+
+class ResendOTPView(View):
     def get(self, request, *args, **kwargs):
-        """
-        Renders the resend OTP page.
-        """
         return render(request, 'users/resend_otp.html')
 
+
     def post(self, request, *args, **kwargs):
-        """
-        Handles the resend OTP request.
-        """
         email = request.POST.get('email')
         if not email:
             messages.error(request, "Email is required.")
             return redirect('resend-otp')
 
         try:
-            user = get_object_or_404(User, email=email)  # Get user or return 404
+            user = get_object_or_404(User, email=email)
         except User.DoesNotExist:
             messages.error(request, "User with this email does not exist.")
             return redirect('resend-otp')
 
-        # Generate a new OTP
-        otp = generate_random_otp()  # Use the utility function
+        otp = generate_random_otp()
         otp_instance, created = OTP.objects.update_or_create(
             user=user,
             defaults={'otp': otp, 'created_at': timezone.now()}
         )
 
-        # Send OTP via email
-        try:
-            send_mail(
-                'Your OTP Code',
-                f'Use this OTP to verify your email: {otp}',
-                'from@example.com',
-                [email],
-                fail_silently=False,
-            )
+        # Send OTP using SendGrid
+        email_sent = send_otp_email(
+            to_email=email,
+            otp_code=otp,
+            subject='Your new verification code'
+        )
+        
+        if email_sent:
             messages.success(request, "OTP resent successfully.")
-        except Exception as e:
-            messages.error(request, f"Failed to send OTP. Error: {str(e)}")
+            return redirect('verify-email')
+        else:
+            messages.error(request, "Failed to send OTP. Please try again.")
             return redirect('resend-otp')
-
-        return redirect('verify-email')
-    
-
+        
 # class LoginView(FormView):
 #     form_class = LoginForm
 #     template_name = 'users/login.html'

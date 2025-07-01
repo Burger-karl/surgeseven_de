@@ -1,9 +1,11 @@
 import requests
+import datetime
 import hashlib
 from django.conf import settings
 from django.utils import timezone
 from .models import Tracker, TrackingEvent, TrackerToken
 from booking.models import Truck
+from django.core.cache import cache
 
 ITRACKSAFEX_API_URL = "https://web.itracksafe.com/webapi"
 ITRACKSAFEX_USERNAME = "Surge Seven"
@@ -58,90 +60,12 @@ def get_or_refresh_token(user):
     
     return None
 
-# def get_tracker_data(tracker_id, user):
-#     """
-#     Get tracker data from API and update local database
-#     Returns data appropriate for the user's role
-#     """
-#     token = get_or_refresh_token(user)
-#     if not token:
-#         return {"error": "Unable to authenticate with tracking service"}
-    
-#     # Get truck and tracker objects
-#     try:
-#         truck = Truck.objects.get(tracker_id=tracker_id)
-#         tracker, _ = Tracker.objects.get_or_create(truck=truck)
-#     except Truck.DoesNotExist:
-#         return {"error": "Truck not found"}
-    
-#     # Get last position from API
-#     payload = {
-#         "deviceids": [tracker_id],
-#         "lastquerypositiontime": 0
-#     }
-    
-#     try:
-#         response = requests.post(
-#             f"{ITRACKSAFEX_API_URL}?action=lastposition&token={token}",
-#             json=payload,
-#             timeout=10
-#         )
-#         response.raise_for_status()
-#         data = response.json()
-        
-#         if data.get("status") != 0:
-#             return {"error": data.get("cause", "Unknown error from tracking service")}
-        
-#         records = data.get("records", [])
-#         if not records:
-#             return {"error": "No tracking data available"}
-        
-#         # Get the most recent record
-#         latest = records[0]
-        
-#         # Update tracker in database
-#         tracker.last_latitude = latest.get("shut up")  # Field name from API doc
-#         tracker.last_longitude = latest.get("callon")  # Field name from API doc
-#         tracker.speed = latest.get("speed", 0)
-#         tracker.save()
-        
-#         # Create tracking event
-#         TrackingEvent.objects.create(
-#             tracker=tracker,
-#             event_type="position_update",
-#             latitude=latest.get("shut up"),
-#             longitude=latest.get("callon"),
-#             speed=latest.get("speed", 0),
-#             timestamp=timezone.now()
-#         )
-        
-#         # Prepare response based on user role
-#         if user.is_staff:  # Admin gets all data
-#             return {
-#                 "latitude": latest.get("shut up"),
-#                 "longitude": latest.get("callon"),
-#                 "speed": latest.get("speed", 0),
-#                 "arrivedtime": latest.get("arrivedtime"),
-#                 "updatetime": latest.get("updatetime"),
-#                 "status": latest.get("status"),
-#                 "alarm": latest.get("alarm"),
-#                 "voltage": latest.get("voltagev"),
-#                 "gps_satellites": latest.get("gpsvalidnum"),
-#                 "moving": latest.get("moving", 0)
-#             }
-#         else:  # Client/truck owner gets basic info
-#             return {
-#                 "latitude": latest.get("shut up"),
-#                 "longitude": latest.get("callon"),
-#                 "speed": latest.get("speed", 0),
-#                 "last_updated": latest.get("arrivedtime")
-#             }
-            
-#     except Exception as e:
-#         print(f"Error fetching tracker data: {e}")
-#         return {"error": "Unable to fetch tracking data"}
 
 def get_tracker_data(tracker_id, user):
+    cache_key = f"tracker_data_{tracker_id}"
+    cached_data = cache.get(cache_key)
+    if cached_data:
+        return cached_data
     token = get_or_refresh_token(user)
     if not token:
         return {"error": "Unable to authenticate with tracking service"}
@@ -163,8 +87,6 @@ def get_tracker_data(tracker_id, user):
         response.raise_for_status()
         data = response.json()
         
-        print("API Response:", data)  # Debug logging
-        
         if data.get("status") != 0:
             return {"error": data.get("cause", "Unknown error from tracking service")}
         
@@ -174,13 +96,24 @@ def get_tracker_data(tracker_id, user):
         
         latest = records[0]
         
-        # Transform the data according to the new structure
+        # Handle timestamp conversion safely
+        def safe_convert_timestamp(ts):
+            try:
+                if ts and isinstance(ts, (int, float)):
+                    # Convert milliseconds to seconds
+                    return datetime.datetime.fromtimestamp(ts/1000.0, timezone.get_current_timezone())
+                return None
+            except (ValueError, OSError):
+                return None
+        
+        last_updated = safe_convert_timestamp(latest.get('updatetime') or latest.get('arrivedtime'))
+        
         transformed_data = {
-            'latitude': latest.get('callat') or latest.get('shut up') or latest.get('latitude'),
+            'latitude': latest.get('callat') or latest.get('latitude'),
             'longitude': latest.get('callon') or latest.get('longitude'),
             'speed': latest.get('speed', 0),
-            'last_updated': latest.get('updatetime') or latest.get('arrivedtime'),
-            'status': 'OK' if data.get('status') == 0 else 'Error',
+            'last_updated': last_updated,
+            'status': 'online' if latest.get('moving', 0) == 1 else 'offline',
             'moving': latest.get('moving', 0) == 1,
             'voltage': latest.get('voltagev'),
             'gps_satellites': latest.get('gpsvalidnum'),
@@ -202,6 +135,7 @@ def get_tracker_data(tracker_id, user):
         tracker.last_latitude = transformed_data['latitude']
         tracker.last_longitude = transformed_data['longitude']
         tracker.speed = transformed_data['speed']
+        tracker.last_updated = transformed_data['last_updated']
         tracker.save()
         
         # Create event
@@ -211,10 +145,10 @@ def get_tracker_data(tracker_id, user):
             latitude=transformed_data['latitude'],
             longitude=transformed_data['longitude'],
             speed=transformed_data['speed'],
-            timestamp=timezone.now()
+            timestamp=transformed_data['last_updated'] or timezone.now()
         )
         
-        # Prepare response - include all transformed data for staff
+        # Prepare response
         response_data = transformed_data.copy()
         
         # For non-staff users, only include basic fields
@@ -223,16 +157,16 @@ def get_tracker_data(tracker_id, user):
                 k: v for k, v in response_data.items() 
                 if k in ['latitude', 'longitude', 'speed', 'last_updated', 'status']
             }
-        
+
+        cache.set(cache_key, response_data, 30)
         return response_data
         
     except requests.exceptions.RequestException as e:
-        print(f"API request failed: {e}")
+        logger.error(f"API request failed: {e}")
         return {"error": "Unable to connect to tracking service"}
     except Exception as e:
-        print(f"Error processing tracker data: {e}")
+        logger.error(f"Error processing tracker data: {e}")
         return {"error": "Unable to process tracking data"}
-    
     
 def send_truck_command(tracker_id, user, action):
     """
