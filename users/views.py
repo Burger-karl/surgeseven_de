@@ -232,55 +232,6 @@ class ReferralView(View):
         return render(request, self.template_name, context)
 
 
-# class ResendOTPView(View):
-#     """
-#     View for resending OTP to a user's email.
-#     """
-
-#     def get(self, request, *args, **kwargs):
-#         """
-#         Renders the resend OTP page.
-#         """
-#         return render(request, 'users/resend_otp.html')
-
-#     def post(self, request, *args, **kwargs):
-#         """
-#         Handles the resend OTP request.
-#         """
-#         email = request.POST.get('email')
-#         if not email:
-#             messages.error(request, "Email is required.")
-#             return redirect('resend-otp')
-
-#         try:
-#             user = get_object_or_404(User, email=email)  # Get user or return 404
-#         except User.DoesNotExist:
-#             messages.error(request, "User with this email does not exist.")
-#             return redirect('resend-otp')
-
-#         # Generate a new OTP
-#         otp = generate_random_otp()  # Use the utility function
-#         otp_instance, created = OTP.objects.update_or_create(
-#             user=user,
-#             defaults={'otp': otp, 'created_at': timezone.now()}
-#         )
-
-#         # Send OTP via email
-#         try:
-#             send_mail(
-#                 'Your OTP Code',
-#                 f'Use this OTP to verify your email: {otp}',
-#                 'from@example.com',
-#                 [email],
-#                 fail_silently=False,
-#             )
-#             messages.success(request, "OTP resent successfully.")
-#         except Exception as e:
-#             messages.error(request, f"Failed to send OTP. Error: {str(e)}")
-#             return redirect('resend-otp')
-
-#         return redirect('verify-email')
-
 
 class ResendOTPView(View):
     def get(self, request, *args, **kwargs):
@@ -319,37 +270,7 @@ class ResendOTPView(View):
             messages.error(request, "Failed to send OTP. Please try again.")
             return redirect('resend-otp')
         
-        
-# class LoginView(FormView):
-#     form_class = LoginForm
-#     template_name = 'users/login.html'
-#     success_url = reverse_lazy('profile-create')  # Default success URL
-
-#     def form_valid(self, form):
-#         email = form.cleaned_data.get('email')
-#         password = form.cleaned_data.get('password')
-#         user = authenticate(email=email, password=password)
-
-#         if user:
-#             if not user.is_verified:
-#                 messages.error(self.request, "Account not verified. Please verify your email.")
-#                 return redirect('login')
-
-#             login(self.request, user)
-#             messages.success(self.request, "Logged in successfully.")
-
-#             # Check if the user has a profile
-#             try:
-#                 profile = user.profile
-#                 # If the user has a profile, redirect to the dashboard or another page
-#                 return redirect(self.get_success_url())
-#             except Profile.DoesNotExist:
-#                 # If the user does not have a profile, redirect to the profile creation page
-#                 return redirect('profile-create')
-
-#         messages.error(self.request, "Invalid credentials.")
-#         return redirect('login')
-
+    
 
 class LoginView(FormView):
     form_class = LoginForm
