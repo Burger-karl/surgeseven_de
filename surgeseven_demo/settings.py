@@ -140,9 +140,6 @@ DATABASES = {
     }
 }
 
-# # Email configuration
-# EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 # Paystack configuration
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
@@ -156,17 +153,6 @@ PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
 # DEFAULT_FROM_EMAIL='info@burgrestauth.com'
 
 
-# Email Configuration (Gmail API)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'charleskalu863@gmail.com'  # Your Google Workspace or Gmail
-# EMAIL_HOST_PASSWORD = ''  # Leave empty (using OAuth2)
-# DEFAULT_FROM_EMAIL = 'charleskalu863@gmail.com'
-
-
-
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.sendgrid.net'
@@ -174,7 +160,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'apikey'  # This is literally the word 'apikey'
 EMAIL_HOST_PASSWORD = os.getenv('SENDGRID_API_KEY')  # Your SendGrid API key
-DEFAULT_FROM_EMAIL = 'charleskalu863@gmail.com'  # Must be verified in SendGrid
+DEFAULT_FROM_EMAIL = 'adminhr@surgesevenltd.com'  # Must be verified in SendGrid
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 
 # Password validation
@@ -226,18 +212,6 @@ AUTHENTICATION_BACKENDS = [
     'users.backends.EmailBackend',  # Path to your custom backend
     'django.contrib.auth.backends.ModelBackend',  # Default backend
 ]
-
-
-# Celery settings
-# CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Using Redis as broker
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-# CELERY_TIMEZONE = 'UTC'
-# CELERY_BEAT_SCHEDULE = {
-#     'refresh-tracker-tokens': {
-#         'task': 'tracker.tasks.refresh_tracker_tokens',
-#         'schedule': timedelta(hours=1),  # Run every hour to check for expiring tokens
-#     },
-# }
 
 
 # iTracksafeX Settings
