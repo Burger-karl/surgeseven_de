@@ -142,39 +142,41 @@
 
         <!-- Unpaid Bookings Table -->
         <div class="col-12">
-            <div class="card recent-sales overflow-auto">
+            <div class="card recent-sales">
                 <div class="card-body">
                     <h5 class="card-title">Unpaid Bookings</h5>
                     {% if unpaid_bookings %}
-                        <table class="table table-borderless datatable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Pickup</th>
-                                    <th scope="col">Destination</th>
-                                    <th scope="col">Cost</th>
-                                    <th scope="col">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for booking in unpaid_bookings %}
-                                <tr>
-                                    <td>{{ booking.truck__name }}</td>
-                                    <td>{{ booking.product_name }}</td>
-                                    <td>{{ booking.pickup_state }}</td>
-                                    <td>{{ booking.destination_state }}</td>
-                                    <td>₦{{ booking.delivery_cost }}</td>
-                                    <td>
-                                        <form action="{% url 'create-booking-payment' booking.id %}" method="post" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-success">Pay Now</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">  <!-- Added wrapper -->
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Pickup</th>
+                                        <th scope="col">Destination</th>
+                                        <th scope="col">Cost</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in unpaid_bookings %}
+                                    <tr>
+                                        <td>{{ booking.truck__name }}</td>
+                                        <td>{{ booking.product_name }}</td>
+                                        <td>{{ booking.pickup_state }}</td>
+                                        <td>{{ booking.destination_state }}</td>
+                                        <td>₦{{ booking.delivery_cost }}</td>
+                                        <td>
+                                            <form action="{% url 'create-booking-payment' booking.id %}" method="post" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">Pay Now</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  <!-- End wrapper -->
                     {% else %}
                         <p class="text-center">No unpaid bookings available.</p>
                     {% endif %}
@@ -184,34 +186,36 @@
 
         <!-- Paid Bookings Table -->
         <div class="col-12">
-            <div class="card top-selling overflow-auto">
+            <div class="card top-selling">
                 <div class="card-body pb-0">
                     <h5 class="card-title">Paid Bookings</h5>
                     {% if paid_bookings %}
-                        <table class="table table-borderless">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Pickup</th>
-                                    <th scope="col">Destination</th>
-                                    <th scope="col">Cost</th>
-                                    <th scope="col">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for booking in paid_bookings %}
-                                <tr>
-                                    <td>{{ booking.truck__name }}</td>
-                                    <td>{{ booking.product_name }}</td>
-                                    <td>{{ booking.pickup_state }}</td>
-                                    <td>{{ booking.destination_state }}</td>
-                                    <td>₦{{ booking.delivery_cost }}</td>
-                                    <td>{{ booking.created_at|date:"M d, Y" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">  <!-- Added wrapper -->
+                            <table class="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Pickup</th>
+                                        <th scope="col">Destination</th>
+                                        <th scope="col">Cost</th>
+                                        <th scope="col">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in paid_bookings %}
+                                    <tr>
+                                        <td>{{ booking.truck__name }}</td>
+                                        <td>{{ booking.product_name }}</td>
+                                        <td>{{ booking.pickup_state }}</td>
+                                        <td>{{ booking.destination_state }}</td>
+                                        <td>₦{{ booking.delivery_cost }}</td>
+                                        <td>{{ booking.created_at|date:"M d, Y" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  <!-- End wrapper -->
                     {% else %}
                         <p class="text-center">No paid bookings available.</p>
                     {% endif %}
@@ -225,36 +229,38 @@
                 <div class="card-body">
                     <h5 class="card-title">Delivery Schedules</h5>
                     {% if delivery_schedules %}
-                        <table class="table table-borderless datatable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Destination</th>
-                                    <th scope="col">Total Cost</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for schedule in delivery_schedules %}
-                                <tr>
-                                    <td>{{ schedule.booking__truck__name }}</td>
-                                    <td>{{ schedule.booking__product_name }}</td>
-                                    <td>{{ schedule.booking__destination_state }}</td>
-                                    <td>₦{{ schedule.booking__total_delivery_cost }}</td>
-                                    <td>
-                                        {% if schedule.status == "Delivered" %}
-                                            <span class="badge bg-success">Delivered</span>
-                                        {% elif schedule.status == "Pending" %}
-                                            <span class="badge bg-secondary">Pending</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">In Transit</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">  <!-- Added wrapper -->
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Destination</th>
+                                        <th scope="col">Total Cost</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in delivery_schedules %}
+                                    <tr>
+                                        <td>{{ schedule.booking__truck__name }}</td>
+                                        <td>{{ schedule.booking__product_name }}</td>
+                                        <td>{{ schedule.booking__destination_state }}</td>
+                                        <td>₦{{ schedule.booking__total_delivery_cost }}</td>
+                                        <td>
+                                            {% if schedule.status == "Delivered" %}
+                                                <span class="badge bg-success">Delivered</span>
+                                            {% elif schedule.status == "Pending" %}
+                                                <span class="badge bg-secondary">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">In Transit</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  <!-- End wrapper -->
                     {% else %}
                         <p class="text-center">No delivery schedules available.</p>
                     {% endif %}
@@ -268,28 +274,30 @@
                 <div class="card-body">
                     <h5 class="card-title">Delivery Histories</h5>
                     {% if delivery_histories %}
-                        <table class="table table-borderless datatable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Destination</th>
-                                    <th scope="col">Insurance</th>
-                                    <th scope="col">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for history in delivery_histories %}
-                                <tr>
-                                    <td>{{ history.booking__truck__name }}</td>
-                                    <td>{{ history.booking__product_name }}</td>
-                                    <td>{{ history.booking__destination_state }}</td>
-                                    <td>₦{{ history.booking__insurance_payment }}</td>
-                                    <td>₦{{ history.booking__total_delivery_cost }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">  <!-- Added wrapper -->
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Destination</th>
+                                        <th scope="col">Insurance</th>
+                                        <th scope="col">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for history in delivery_histories %}
+                                    <tr>
+                                        <td>{{ history.booking__truck__name }}</td>
+                                        <td>{{ history.booking__product_name }}</td>
+                                        <td>{{ history.booking__destination_state }}</td>
+                                        <td>₦{{ history.booking__insurance_payment }}</td>
+                                        <td>₦{{ history.booking__total_delivery_cost }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  <!-- End wrapper -->
                     {% else %}
                         <p class="text-center">No delivery histories available.</p>
                     {% endif %}
@@ -325,108 +333,108 @@
         </div>
 
         <!-- Tracked Trucks Section -->
-<div class="col-12">
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Tracked Trucks</h5>
-            {% if tracked_trucks_page.object_list %}
-                <div class="table-responsive">
-                    <table class="table table-borderless datatable">
-                        <thead>
-                            <tr>
-                                <th scope="col">Truck</th>
-                                <th scope="col">Owner</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Last Location</th>
-                                <th scope="col">Last Updated</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for truck in tracked_trucks_page.object_list %}
-                                {% with tracker_data=truck.tracker_data %}
-                                <tr>
-                                    <td>{{ truck.name }}</td>
-                                    <td>{{ truck.owner.get_full_name }}</td>
-                                    <td>
-                                        {% if tracker_data.status == "online" %}
-                                            <span class="badge bg-success">Online</span>
-                                        {% elif tracker_data.status == "offline" %}
-                                            <span class="badge bg-danger">Offline</span>
-                                        {% else %}
-                                            <span class="badge bg-warning">Unknown</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if tracker_data.latitude and tracker_data.longitude %}
-                                            {{ tracker_data.latitude|floatformat:4 }}, {{ tracker_data.longitude|floatformat:4 }}
-                                        {% else %}
-                                            N/A
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if tracker_data.last_updated %}
-                                            {{ tracker_data.last_updated|timesince }} ago
-                                        {% else %}
-                                            N/A
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'tracking_dashboard' truck.id %}" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-geo-alt"></i> View Map
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tracked Trucks</h5>
+                    {% if tracked_trucks_page.object_list %}
+                        <div class="table-responsive">  <!-- Added wrapper -->
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Owner</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Last Location</th>
+                                        <th scope="col">Last Updated</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for truck in tracked_trucks_page.object_list %}
+                                        {% with tracker_data=truck.tracker_data %}
+                                        <tr>
+                                            <td>{{ truck.name }}</td>
+                                            <td>{{ truck.owner.get_full_name }}</td>
+                                            <td>
+                                                {% if tracker_data.status == "online" %}
+                                                    <span class="badge bg-success">Online</span>
+                                                {% elif tracker_data.status == "offline" %}
+                                                    <span class="badge bg-danger">Offline</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Unknown</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if tracker_data.latitude and tracker_data.longitude %}
+                                                    {{ tracker_data.latitude|floatformat:4 }}, {{ tracker_data.longitude|floatformat:4 }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if tracker_data.last_updated %}
+                                                    {{ tracker_data.last_updated|timesince }} ago
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'tracking_dashboard' truck.id %}" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-geo-alt"></i> View Map
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>  <!-- End wrapper -->
+
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center">
+                                {% if tracked_trucks_page.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1" aria-label="First">
+                                            <span aria-hidden="true">&laquo;&laquo;</span>
                                         </a>
-                                    </td>
-                                </tr>
-                                {% endwith %}
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ tracked_trucks_page.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+
+                                {% for num in tracked_trucks_page.paginator.page_range %}
+                                    {% if tracked_trucks_page.number == num %}
+                                        <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                    {% elif num > tracked_trucks_page.number|add:'-3' and num < tracked_trucks_page.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if tracked_trucks_page.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ tracked_trucks_page.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ tracked_trucks_page.paginator.num_pages }}" aria-label="Last">
+                                            <span aria-hidden="true">&raquo;&raquo;</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% else %}
+                        <p class="text-center">No tracked trucks available.</p>
+                    {% endif %}
                 </div>
-
-                <!-- Pagination -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if tracked_trucks_page.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1" aria-label="First">
-                                    <span aria-hidden="true">&laquo;&laquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ tracked_trucks_page.previous_page_number }}" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                </a>
-                            </li>
-                        {% endif %}
-
-                        {% for num in tracked_trucks_page.paginator.page_range %}
-                            {% if tracked_trucks_page.number == num %}
-                                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
-                            {% elif num > tracked_trucks_page.number|add:'-3' and num < tracked_trucks_page.number|add:'3' %}
-                                <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if tracked_trucks_page.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ tracked_trucks_page.next_page_number }}" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ tracked_trucks_page.paginator.num_pages }}" aria-label="Last">
-                                    <span aria-hidden="true">&raquo;&raquo;</span>
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% else %}
-                <p class="text-center">No tracked trucks available.</p>
-            {% endif %}
+            </div>
         </div>
-    </div>
-</div>
     </div>
 </section>
 

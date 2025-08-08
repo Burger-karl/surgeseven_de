@@ -137,32 +137,34 @@
 
         <!-- Pending Trucks Table -->
         <div class="col-12">
-            <div class="card recent-sales overflow-auto">
+            <div class="card recent-sales">
                 <div class="card-body">
                     <h5 class="card-title">Pending Trucks</h5>
                     {% if pending_trucks %}
-                        <table class="table table-borderless datatable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Weight Range</th>
-                                    <th scope="col">Location</th>
-                                    <th scope="col">Images</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for truck in pending_trucks %}
-                                <tr>
-                                    <td>{{ truck.name }}</td>
-                                    <td>{{ truck.weight_range }}</td>
-                                    <td>{{ truck.state }}</td>
-                                    <td>{{ truck.image_count }}</td>
-                                    <td><span class="badge bg-warning">Pending</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Weight Range</th>
+                                        <th scope="col">Location</th>
+                                        <th scope="col">Images</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for truck in pending_trucks %}
+                                    <tr>
+                                        <td>{{ truck.name }}</td>
+                                        <td>{{ truck.weight_range }}</td>
+                                        <td>{{ truck.state }}</td>
+                                        <td>{{ truck.image_count }}</td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
                         <p class="text-center">No pending trucks available.</p>
                     {% endif %}
@@ -172,32 +174,34 @@
 
         <!-- Available Trucks Table -->
         <div class="col-12">
-            <div class="card top-selling overflow-auto">
+            <div class="card top-selling">
                 <div class="card-body pb-0">
                     <h5 class="card-title">Available Trucks</h5>
                     {% if available_trucks %}
-                        <table class="table table-borderless">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Weight Range</th>
-                                    <th scope="col">Location</th>
-                                    <th scope="col">Images</th>
-                                    <th scope="col">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for truck in available_trucks %}
-                                <tr>
-                                    <td>{{ truck.name }}</td>
-                                    <td>{{ truck.weight_range }}</td>
-                                    <td>{{ truck.state }}</td>
-                                    <td>{{ truck.image_count }}</td>
-                                    <td><span class="badge bg-success">Available</span></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Weight Range</th>
+                                        <th scope="col">Location</th>
+                                        <th scope="col">Images</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for truck in available_trucks %}
+                                    <tr>
+                                        <td>{{ truck.name }}</td>
+                                        <td>{{ truck.weight_range }}</td>
+                                        <td>{{ truck.state }}</td>
+                                        <td>{{ truck.image_count }}</td>
+                                        <td><span class="badge bg-success">Available</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
                         <p class="text-center">No available trucks at the moment.</p>
                     {% endif %}
@@ -211,28 +215,30 @@
                 <div class="card-body">
                     <h5 class="card-title">Active Bookings</h5>
                     {% if active_bookings %}
-                        <table class="table table-borderless datatable">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Truck</th>
-                                    <th scope="col">Product</th>
-                                    <th scope="col">Pickup</th>
-                                    <th scope="col">Destination</th>
-                                    <th scope="col">Delivery Cost</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for booking in active_bookings %}
-                                <tr>
-                                    <td>{{ booking.truck__name }}</td>
-                                    <td>{{ booking.product_name }}</td>
-                                    <td>{{ booking.pickup_state }}</td>
-                                    <td>{{ booking.destination_state }}</td>
-                                    <td>₦{{ booking.delivery_cost }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-borderless datatable">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Truck</th>
+                                        <th scope="col">Product</th>
+                                        <th scope="col">Pickup</th>
+                                        <th scope="col">Destination</th>
+                                        <th scope="col">Delivery Cost</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for booking in active_bookings %}
+                                    <tr>
+                                        <td>{{ booking.truck__name }}</td>
+                                        <td>{{ booking.product_name }}</td>
+                                        <td>{{ booking.pickup_state }}</td>
+                                        <td>{{ booking.destination_state }}</td>
+                                        <td>₦{{ booking.delivery_cost }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
                         <p class="text-center">No active bookings available.</p>
                     {% endif %}
@@ -246,6 +252,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Delivery Histories</h5>
                     {% if delivery_histories %}
+                    <div class="table-responsive">
                         <table class="table table-borderless datatable">
                             <thead>
                                 <tr>
@@ -268,6 +275,7 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
                     {% else %}
                         <p class="text-center">No delivery histories available.</p>
                     {% endif %}

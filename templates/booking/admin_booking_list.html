@@ -6,7 +6,6 @@
 <section class="breadcrumbs">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-    
             <ol>
                 <li><a href="#">Home</a></li>
                 <li>Bookings</li>
@@ -17,85 +16,215 @@
 {% endblock %}
 
 {% block main-content %}
-<div class="card bg-dark">
+<style>
+    /* Mobile card styling */
+    .booking-card {
+        background: #2c3e50;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+    
+    .booking-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .card-header {
+        background: #1a252f;
+        padding: 12px 15px;
+        border-bottom: 1px solid #34495e;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .card-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #34495e;
+    }
+    
+    .card-row:last-child {
+        border-bottom: none;
+    }
+    
+    .card-label {
+        color: #95a5a6;
+        font-weight: 500;
+    }
+    
+    .card-value {
+        color: #ecf0f1;
+        text-align: right;
+        max-width: 60%;
+    }
+    
+    
+    @media (min-width: 992px) {
+        .card-view {
+            display: none;
+        }
+        
+        .table-view {
+            display: block;
+        }
+    }
+    
+    @media (max-width: 991px) {
+        .card-view {
+            display: block;
+        }
+        
+        .table-view {
+            display: none;
+        }
+    }
+    
+    /* Modal styling */
+    .modal-content {
+        background: #2c3e50;
+        border: 1px solid #34495e;
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid #34495e;
+    }
+    
+    .modal-footer {
+        border-top: 1px solid #34495e;
+    }
+    
+    
+    .total-preview {
+        font-weight: bold;
+        color: #f39c12;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="card bg-dark border-0">
     <div class="card-header text-white d-flex justify-content-between align-items-center">
         <span>Pending Bookings (No Delivery Cost Assigned)</span>
+        <div class="d-block d-lg-none text-muted small">
+            <i class="bi bi-phone"></i>
+        </div>
     </div>
+    
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-dark table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th>Booking ID</th>
-                        <th>Product</th>
-                        <th>Weight</th>
-                        <th>Value</th>
-                        <th>Pickup</th>
-                        <th>Destination</th>
-                        <th>Insurance</th>
-                        <th>Booked At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for booking in bookings %}
-                    <tr>
-                        <td>{{ booking.id }}</td>
-                        <td>{{ booking.product_name }}</td>
-                        <td>{{ booking.get_product_weight_display }}</td>
-                        <td>₦{{ booking.product_value|floatformat:2 }}</td>
-                        <td>{{ booking.get_pickup_state_display }}</td>
-                        <td>{{ booking.get_destination_state_display }}</td>
-                        <td>₦{{ booking.insurance_payment|floatformat:2 }}</td>
-                        <td>{{ booking.booked_at|date:"Y-m-d H:i" }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" 
-                                    data-bs-target="#setCostModal{{ booking.id }}">
-                                Set Cost
-                            </button>
-                        </td>
-                    </tr>
-                    
-                    <!-- Modal for setting delivery cost -->
-                    <div class="modal fade" id="setCostModal{{ booking.id }}" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content bg-dark">
-                                <div class="modal-header">
-                                    <h5 class="modal-title text-white">Set Delivery Cost</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <form method="post" action="{% url 'admin-booking-list' %}">
-                                    {% csrf_token %}
-                                    <div class="modal-body text-white">
-                                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
-                                        <div class="mb-3">
-                                            <label for="delivery_cost{{ booking.id }}" class="form-label">Delivery Cost (₦)</label>
-                                            <input type="number" step="0.01" class="form-control" 
-                                                   id="delivery_cost{{ booking.id }}" name="delivery_cost" required>
-                                        </div>
-                                        <p>Product Value: ₦{{ booking.product_value|floatformat:2 }}</p>
-                                        <p>Insurance: ₦{{ booking.insurance_payment|floatformat:2 }}</p>
-                                        <p>Total will be calculated automatically</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-warning">Save</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+        
+        <div class="card-view">
+            {% for booking in bookings %}
+            <div class="booking-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Booking #{{ booking.id }}</span>
+                        <span class="badge bg-warning text-dark">Pending</span>
                     </div>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9" class="text-center">No pending bookings found</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                </div>
+                
+                <div class="card-body">
+                    <div class="card-row">
+                        <span class="card-label">Product:</span>
+                        <span class="card-value">{{ booking.product_name }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Weight:</span>
+                        <span class="card-value">{{ booking.get_product_weight_display }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Value:</span>
+                        <span class="card-value">₦{{ booking.product_value|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Pickup:</span>
+                        <span class="card-value">{{ booking.get_pickup_state_display }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Destination:</span>
+                        <span class="card-value">{{ booking.get_destination_state_display }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Insurance:</span>
+                        <span class="card-value">₦{{ booking.insurance_payment|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="card-row">
+                        <span class="card-label">Booked At:</span>
+                        <span class="card-value">{{ booking.booked_at|date:"M d, H:i" }}</span>
+                    </div>
+                    
+                    <div class="card-row pt-3">
+                        <button class="btn btn-warning w-100" data-bs-toggle="modal" 
+                                data-bs-target="#setCostModal{{ booking.id }}">
+                            <i class="bi bi-pencil"></i> Set Delivery Cost
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-dark text-center">
+                No pending bookings found
+            </div>
+            {% endfor %}
         </div>
         
+        <!-- Table view for desktop -->
+        <div class="table-view">
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product</th>
+                            <th>Weight</th>
+                            <th>Value</th>
+                            <th>Pickup</th>
+                            <th>Destination</th>
+                            <th>Insurance</th>
+                            <th>Booked At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>{{ booking.id }}</td>
+                            <td>{{ booking.product_name }}</td>
+                            <td>{{ booking.get_product_weight_display }}</td>
+                            <td>₦{{ booking.product_value|floatformat:2 }}</td>
+                            <td>{{ booking.get_pickup_state_display }}</td>
+                            <td>{{ booking.get_destination_state_display }}</td>
+                            <td>₦{{ booking.insurance_payment|floatformat:2 }}</td>
+                            <td>{{ booking.booked_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" 
+                                        data-bs-target="#setCostModal{{ booking.id }}">
+                                    Set Cost
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No pending bookings found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
         {% if is_paginated %}
-        <nav aria-label="Page navigation">
+        <nav aria-label="Page navigation" class="mt-4">
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
@@ -137,4 +266,82 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modals -->
+{% for booking in bookings %}
+<div class="modal fade" id="setCostModal{{ booking.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">Set Delivery Cost for Booking #{{ booking.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'admin-booking-list' %}">
+                {% csrf_token %}
+                <div class="modal-body bg-dark text-white">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                    <div class="mb-3">
+                        <label for="delivery_cost{{ booking.id }}" class="form-label">Delivery Cost (₦)</label>
+                        <input type="number" step="0.01" class="form-control delivery-input" 
+                               id="delivery_cost{{ booking.id }}" name="delivery_cost" required
+                               data-insurance="{{ booking.insurance_payment }}"
+                               placeholder="Enter delivery cost">
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="card bg-secondary border-0">
+                                <div class="card-body">
+                                    <h6 class="card-title">Product Value</h6>
+                                    <p class="card-text">₦{{ booking.product_value|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-secondary border-0">
+                                <div class="card-body">
+                                    <h6 class="card-title">Insurance</h6>
+                                    <p class="card-text">₦{{ booking.insurance_payment|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <h5>Total: <span id="totalCostPreview{{ booking.id }}" class="total-preview">
+                            ₦{{ booking.insurance_payment|floatformat:2 }}
+                        </span></h5>
+                    </div>
+                </div>
+                <div class="modal-footer bg-dark">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-warning">Save Delivery Cost</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.delivery-input').forEach(input => {
+        const bookingId = input.id.replace('delivery_cost', '');
+        const preview = document.getElementById('totalCostPreview' + bookingId);
+        const insurance = parseFloat(input.dataset.insurance) || 0;
+        
+        // Initialize total preview
+        updatePreview(input, preview, insurance);
+        
+        // Add event listener
+        input.addEventListener('input', () => updatePreview(input, preview, insurance));
+    });
+    
+    function updatePreview(input, preview, insurance) {
+        const deliveryCost = parseFloat(input.value) || 0;
+        const totalCost = deliveryCost + insurance;
+        preview.textContent = '₦' + totalCost.toFixed(2);
+    }
+});
+</script>
 {% endblock %}
