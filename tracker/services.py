@@ -6,6 +6,7 @@ from django.utils import timezone
 from .models import Tracker, TrackingEvent, TrackerToken
 from booking.models import Truck
 from django.core.cache import cache
+import logging
 
 ITRACKSAFEX_API_URL = "https://web.itracksafe.com/webapi"
 ITRACKSAFEX_USERNAME = "Surge Seven"
