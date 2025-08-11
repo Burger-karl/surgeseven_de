@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}500 Error{% endblock %}
+
+{% block main-content %}
+<div class="container">
+    <h1>500: Server Error</h1>
+    <p>An internal server error occurred. Our team has been notified.</p>
+    {% if request.sentry_event_id %}
+    <p><strong>Error ID:</strong> {{ request.sentry_event_id }}</p>
+    {% endif %}
+    <a href="/" class="btn btn-primary">Return Home</a>
+</div>
+{% endblock %}

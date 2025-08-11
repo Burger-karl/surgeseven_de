@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}403 Error{% endblock %}
+
+{% block main-content %}
+<div class="container">
+    <h1>403: Permission Denied</h1>
+    <p>You don't have permission to access this resource.</p>
+    <p><strong>Error Details:</strong> {{ exception }}</p>
+    <a href="/" class="btn btn-primary">Return Home</a>
+</div>
+{% endblock %}

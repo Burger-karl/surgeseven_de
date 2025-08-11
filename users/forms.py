@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User, OTP, Profile
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 class RegisterForm(UserCreationForm):
@@ -49,6 +51,14 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
     
+    def clean_password1(self):
+        password1 = self.cleaned_data.get('password1')
+        try:
+            validate_password(password1)
+        except ValidationError as e:
+            raise forms.ValidationError(e.messages)
+        return password1
+    
 
 class LoginForm(forms.Form):
     email = forms.EmailField(
@@ -95,6 +105,14 @@ class ResetPasswordForm(forms.Form):
         if new_password != confirm_password:
             raise forms.ValidationError("Passwords do not match.")
         return cleaned_data
+    
+    def clean_new_password(self):
+        password = self.cleaned_data.get('new_password')
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            raise forms.ValidationError(e.messages)
+        return password
 
 
 class ProfileForm(forms.ModelForm):

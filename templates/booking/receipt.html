@@ -6,7 +6,6 @@
     <section class="breadcrumbs">
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
-                
                 <ol>
                     <li><a href="{% url 'client_home' %}">Home</a></li>
                     <li><a href="{% url 'booking_list' %}">Bookings</a></li>
@@ -18,9 +17,25 @@
 {% endblock %}
 
 {% block main-content %}
+
+<style>
+    .card-header.bg-warning {
+        background-color: #ffc107 !important;
+        border-bottom: 1px solid #e0a800;
+    }
+    .border-bottom {
+        border-bottom: 2px dashed #dee2e6;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .table-borderless td {
+        padding: 0.3rem 0;
+    }
+</style>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-10"> <!-- Increased width for better layout -->
             <div class="card shadow">
                 <div class="card-header text-center bg-light">
                     <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="SurgeSeven Logo" style="height: 80px;">
@@ -33,58 +48,102 @@
                         <p class="text-muted">Date: {{ booking.booked_at|date:"F j, Y, g:i a" }}</p>
                     </div>
                     
-                    <div class="row mb-4">
+                    <!-- Booking Details Section - Fixed -->
+                    <div class="row mb-4 border-bottom pb-3">
                         <div class="col-md-6">
-                            <h5 class="text-warning">Booking Details</h5>
-                            <p><strong>Truck:</strong> {{ truck_name }}</p>
-                            <p><strong>Product:</strong> {{ product_name }}</p>
-                            <p><strong>Weight:</strong> {{ product_weight_display }}</p>
+                            <div class="card bg-light mb-3">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">Booking Details</h5>
+                                </div>
+                                <div class="card-body text-dark">
+                                    <p><strong>Truck:</strong> {{ booking.truck.name }}</p>
+                                    <p><strong>Product:</strong> {{ booking.product_name }}</p>
+                                    <p><strong>Weight:</strong> {{ booking.get_product_weight_display }}</p>
+                                    <p><strong>Product Value:</strong> ₦{{ booking.product_value|floatformat:2 }}</p>
+                                </div>
+                            </div>
                         </div>
+                        
+                        <!-- Route Details Section - Fixed -->
                         <div class="col-md-6">
-                            <h5 class="text-warning">Route Details</h5>
-                            <p><strong>From:</strong> {{ pickup_state_display }}</p>
-                            <p><strong>To:</strong> {{ destination_state_display }}</p>
-                            <p><strong>Status:</strong> <span class="badge bg-success">{{ booking_status_display }}</span></p>
+                            <div class="card bg-light mb-3">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">Route Details</h5>
+                                </div>
+                                <div class="card-body text-dark">
+                                    <p><strong>From:</strong> {{ booking.get_pickup_state_display }}</p>
+                                    <p><strong>To:</strong> {{ booking.get_destination_state_display }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-{% if booking.booking_status == 'active' %}success{% elif booking.booking_status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                            {{ booking.get_booking_status_display }}
+                                        </span>
+                                    </p>
+                                    <p><strong>Payment Status:</strong> 
+                                        {% if booking.payment_completed %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Pending</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="border-top pt-3">
-                        <h5 class="text-warning">Payment Summary</h5>
-                        <table class="table">
+                    <!-- Payment Summary - Improved -->
+                    <div class="border rounded p-4 mb-4 bg-light">
+                        <h5 class="text-warning mb-3">Payment Summary</h5>
+                        <table class="table table-borderless">
                             <tr>
-                                <td>Delivery Cost:</td>
-                                <td class="text-end">₦{{ booking.delivery_cost }}</td>
+                                <td>Base Delivery Cost:</td>
+                                <td class="text-end">₦{{ booking.delivery_cost|floatformat:2 }}</td>
                             </tr>
                             {% if booking.insurance_payment > 0 %}
                             <tr>
                                 <td>Insurance Payment (1%):</td>
-                                <td class="text-end">₦{{ booking.insurance_payment }}</td>
+                                <td class="text-end">₦{{ booking.insurance_payment|floatformat:2 }}</td>
                             </tr>
                             {% endif %}
-                            <tr class="table-active">
+                            <tr class="border-top">
                                 <td><strong>Total Paid:</strong></td>
-                                <td class="text-end"><strong>₦{{ booking.total_delivery_cost }}</strong></td>
+                                <td class="text-end"><strong>₦{{ booking.total_delivery_cost|floatformat:2 }}</strong></td>
                             </tr>
                         </table>
                     </div>
                     
+                    <!-- Contact Information -->
+                    <div class="alert alert-warning mt-4">
+                        <h6 class="mb-2"><i class="bi bi-info-circle"></i> Need Assistance?</h6>
+                        <p class="mb-0">
+                            Contact our support team at <a href="mailto:support@surgesevenltd.com">support@surgesevenltd.com</a>
+                            or call +234 123 456 7890
+                        </p>
+                    </div>
+                    
+                    <!-- Action Buttons -->
                     <div class="mt-4 text-center">
-                        <p class="text-muted">Receipt generated on {{ booking.receipt.generated_at|date:"F j, Y, g:i a" }}</p>
+                        <p class="text-muted small">Receipt generated on {% now "F j, Y, g:i a" %}</p>
                         
-                        {% if booking.insurance_payment > 0 %}
-                        <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning me-2">
-                            <i class="bi bi-file-earmark-text"></i> View Insurance Receipt
-                        </a>
-                        {% endif %}
-                        
-                        <a href="javascript:window.print()" class="btn btn-outline-secondary">
-                            <i class="bi bi-printer"></i> Print Receipt
-                        </a>
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if booking.insurance_payment > 0 %}
+                            <a href="{% url 'insurance_receipt' booking.booking_code %}" class="btn btn-warning">
+                                <i class="bi bi-file-earmark-text"></i> View Insurance Receipt
+                            </a>
+                            {% endif %}
+                            
+                            <a href="javascript:window.print()" class="btn btn-outline-primary">
+                                <i class="bi bi-printer"></i> Print Receipt
+                            </a>
+                            
+                            <a href="{% url 'client_home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-house"></i> Return Home
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 {% endblock %}
+

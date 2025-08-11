@@ -197,107 +197,11 @@ class BookingUpdateView(UpdateView):
         return redirect(self.success_url)
     
 
-# Generate Receipt View
-# @method_decorator(login_required, name='dispatch')
-# class GenerateReceiptView(DetailView):
-#     model = Booking
-#     template_name = 'booking/receipt.html'
-#     context_object_name = 'booking'
-
-#     def get_object(self, queryset=None):
-#         booking_code = self.kwargs.get('booking_code')
-#         booking = get_object_or_404(Booking, booking_code=booking_code)
-        
-#         # Ensure only the client who made the booking can view the receipt
-#         if booking.client != self.request.user:
-#             raise PermissionDenied("You do not have permission to view this receipt.")
-        
-#         return booking
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         booking = self.get_object()
-        
-#         # Add truck name to the context
-#         context['truck_name'] = booking.truck.name
-        
-#         return context
-
 
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-# @method_decorator(login_required, name='dispatch')
-# class GenerateReceiptView(DetailView):
-#     model = Booking
-#     template_name = 'booking/receipt.html'
-#     context_object_name = 'booking'
-
-#     def get_object(self, queryset=None):
-#         booking_code = self.kwargs.get('booking_code')
-#         booking = get_object_or_404(Booking, booking_code=booking_code)
-        
-#         # Ensure only the client who made the booking can view the receipt
-#         if booking.client != self.request.user:
-#             raise PermissionDenied("You do not have permission to view this receipt.")
-        
-#         return booking
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         booking = self.get_object()
-        
-#         # Add truck name to the context
-#         context['truck_name'] = booking.truck.name
-        
-#         # Check if client has premium subscription
-#         active_subscription = UserSubscription.objects.filter(
-#             user=booking.client,
-#             subscription_status='active',
-#             is_active=True,
-#             plan__name=SubscriptionPlan.PREMIUM
-#         ).first()
-        
-#         context['has_premium'] = active_subscription is not None
-#         context['insurance_company'] = "Veritas Kapital Assurance"
-        
-#         return context
-
-#     def render_to_response(self, context, **response_kwargs):
-#         booking = context['booking']
-        
-#         # Generate and send email with receipts
-#         if booking.client.email:
-#             self.send_receipt_email(booking, context)
-        
-#         return super().render_to_response(context, **response_kwargs)
-
-#     def send_receipt_email(self, booking, context):
-#         # Render both receipts
-#         booking_receipt_html = render_to_string('booking/receipt_email.html', context)
-#         plain_message = strip_tags(booking_receipt_html)
-        
-#         # Create email
-#         subject = f"Your Booking Receipt - #{booking.booking_code}"
-#         from_email = "charleskalu863@gmail.com"
-#         to_email = booking.client.email
-        
-#         email = EmailMultiAlternatives(
-#             subject,
-#             plain_message,
-#             from_email,
-#             [to_email]
-#         )
-#         email.attach_alternative(booking_receipt_html, "text/html")
-        
-#         # Attach insurance receipt if premium user
-#         if context['has_premium']:
-#             insurance_receipt_html = render_to_string('booking/insurance_receipt.html', context)
-#             email.attach_alternative(insurance_receipt_html, "text/html")
-        
-#         # Send email
-#         email.send()
 
 @method_decorator(login_required, name='dispatch')
 class GenerateReceiptView(DetailView):
@@ -358,7 +262,7 @@ class GenerateReceiptView(DetailView):
         
         # Create email
         subject = f"Your Booking Receipt - #{booking.booking_code}"
-        from_email = "charleskalu863@gmail.com"
+        from_email = "adminhr@surgesevenltd.com"
         to_email = booking.client.email
         
         email = EmailMultiAlternatives(
@@ -377,33 +281,6 @@ class GenerateReceiptView(DetailView):
         # Send email
         email.send()
     
-
-# @method_decorator(login_required, name='dispatch')
-# class InsuranceReceiptView(DetailView):
-#     model = Booking
-#     template_name = 'booking/insurance_receipt.html'
-#     context_object_name = 'booking'
-
-#     def get_object(self, queryset=None):
-#         booking_code = self.kwargs.get('booking_code')
-#         booking = get_object_or_404(Booking, booking_code=booking_code)
-        
-#         # Ensure only the client who made the booking can view the receipt
-#         if booking.client != self.request.user:
-#             raise PermissionDenied("You do not have permission to view this receipt.")
-        
-#         # Only show insurance receipt if insurance payment exists
-#         if booking.insurance_payment <= 0:
-#             raise Http404("No insurance receipt available for this booking.")
-        
-#         return booking
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         booking = self.get_object()
-#         context['insurance_company'] = "Veritas Kapital Assurance"
-#         return context
-
 
 @method_decorator(login_required, name='dispatch')
 class InsuranceReceiptView(DetailView):

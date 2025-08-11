@@ -16,26 +16,94 @@
     </section>
 {% endblock %}
 
+
 {% block main-content %}
+
+<style>
+    /* Mobile-specific horizontal scrolling */
+    @media (max-width: 768px) {
+        .mobile-scroll-container {
+            position: relative;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            width: 100%;
+        }
+        
+        .mobile-scroll-container table {
+            min-width: 700px; /* Minimum width to enable scrolling */
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            color: #999;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+        }
+        
+        .scroll-indicator i {
+            margin-left: 5px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        
+        /* Improve mobile table spacing */
+        .table td, .table th {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .card-body {
+            padding: 1rem;
+        }
+    }
+    
+    /* Sticky first column on mobile */
+    @media (max-width: 768px) {
+        .mobile-scroll-container table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        
+    }
+    
+    /* Pagination improvements */
+    .pagination {
+        flex-wrap: wrap;
+    }
+    
+    .page-item {
+        margin: 2px;
+    }
+</style>
+
+
 <div class="card bg-dark">
     <div class="card-header text-white d-flex justify-content-between align-items-center">
         <span>Bookings with Updated Delivery Costs</span>
     </div>
     <div class="card-body">
         {% if page_obj.object_list %}
-            <div class="table-responsive">
+            <div class="mobile-scroll-container">
+                <div class="scroll-indicator d-md-none">
+                    Scroll horizontally <i class="fas fa-arrow-right"></i>
+                </div>
                 <table class="table table-dark table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>Booking ID</th>
+                            
                             <th>Client Email</th>
                             <th>Product</th>
-                            <th>Value</th>
-                            <th>Pickup</th>
-                            <th>Destination</th>
-                            <th>Delivery Cost</th>
-                            <th>Insurance</th>
-                            <th>Total Cost</th>
+                            
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -43,15 +111,10 @@
                     <tbody>
                         {% for booking in page_obj %}
                         <tr>
-                            <td>{{ booking.id }}</td>
+                            
                             <td>{{ booking.client.email }}</td>
                             <td>{{ booking.product_name }}</td>
-                            <td>₦{{ booking.product_value|floatformat:2 }}</td>
-                            <td>{{ booking.get_pickup_state_display }}</td>
-                            <td>{{ booking.get_destination_state_display }}</td>
-                            <td>₦{{ booking.delivery_cost|floatformat:2 }}</td>
-                            <td>₦{{ booking.insurance_payment|floatformat:2 }}</td>
-                            <td>₦{{ booking.total_delivery_cost|floatformat:2 }}</td>
+                            
                             <td>
                                 <span class="badge bg-{% if booking.booking_status == 'active' %}success{% elif booking.booking_status == 'cancelled' %}danger{% else %}warning{% endif %}">
                                     {{ booking.get_booking_status_display }}
@@ -64,77 +127,80 @@
                                 </button>
                             </td>
                         </tr>
-                        
-                        <!-- Modal for booking details -->
-                        <div class="modal fade" id="bookingDetailModal{{ booking.id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content bg-dark">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title text-white">Booking Details #{{ booking.id }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body text-white">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <h5>Client Information</h5>
-                                                <p><strong>Name:</strong> {{ booking.client.get_full_name|default:booking.client.username }}</p>
-                                                <p><strong>Email:</strong> {{ booking.client.email }}</p>
-                                                <p><strong>Phone:</strong> {{ booking.phone_number }}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h5>Truck Information</h5>
-                                                <p><strong>Truck Name:</strong> {{ booking.truck.name }}</p>
-                                                <p><strong>Truck Owner:</strong> {{ booking.truck.owner.get_full_name|default:booking.truck.owner.username }}</p>
-                                                <p><strong>Owner Email:</strong> {{ booking.truck.owner.email }}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <hr>
-                                        
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <h5>Booking Details</h5>
-                                                <p><strong>Product:</strong> {{ booking.product_name }}</p>
-                                                <p><strong>Weight:</strong> {{ booking.get_product_weight_display }}</p>
-                                                <p><strong>Value:</strong> ₦{{ booking.product_value|floatformat:2 }}</p>
-                                                <p><strong>Booked At:</strong> {{ booking.booked_at|date:"Y-m-d H:i" }}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h5>Delivery Information</h5>
-                                                <p><strong>From:</strong> {{ booking.get_pickup_state_display }}</p>
-                                                <p><strong>To:</strong> {{ booking.get_destination_state_display }}</p>
-                                                <p><strong>Delivery Cost:</strong> ₦{{ booking.delivery_cost|floatformat:2 }}</p>
-                                                <p><strong>Insurance:</strong> ₦{{ booking.insurance_payment|floatformat:2 }}</p>
-                                                <p><strong>Total Cost:</strong> ₦{{ booking.total_delivery_cost|floatformat:2 }}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <h5>Status</h5>
-                                                <p>
-                                                    <span class="badge bg-{% if booking.booking_status == 'active' %}success{% elif booking.booking_status == 'cancelled' %}danger{% else %}warning{% endif %}">
-                                                        {{ booking.get_booking_status_display }}
-                                                    </span>
-                                                    {% if booking.payment_completed %}
-                                                        <span class="badge bg-success ms-2">Payment Completed</span>
-                                                    {% else %}
-                                                        <span class="badge bg-danger ms-2">Payment Pending</span>
-                                                    {% endif %}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            
+            <!-- Modals moved outside the table -->
+            {% for booking in page_obj %}
+            <!-- Modal for booking details -->
+            <div class="modal fade" id="bookingDetailModal{{ booking.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content bg-dark">
+                        <div class="modal-header">
+                            <h5 class="modal-title text-white">Booking Details #{{ booking.id }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-white">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Client Information</h5>
+                                    <p><strong>Name:</strong> {{ booking.client.get_full_name|default:booking.client.username }}</p>
+                                    <p><strong>Email:</strong> {{ booking.client.email }}</p>
+                                    <p><strong>Phone:</strong> {{ booking.phone_number }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Truck Information</h5>
+                                    <p><strong>Truck Name:</strong> {{ booking.truck.name }}</p>
+                                    <p><strong>Truck Owner:</strong> {{ booking.truck.owner.get_full_name|default:booking.truck.owner.username }}</p>
+                                    <p><strong>Owner Email:</strong> {{ booking.truck.owner.email }}</p>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <h5>Booking Details</h5>
+                                    <p><strong>Product:</strong> {{ booking.product_name }}</p>
+                                    <p><strong>Weight:</strong> {{ booking.get_product_weight_display }}</p>
+                                    <p><strong>Value:</strong> ₦{{ booking.product_value|floatformat:2 }}</p>
+                                    <p><strong>Booked At:</strong> {{ booking.booked_at|date:"Y-m-d H:i" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Delivery Information</h5>
+                                    <p><strong>From:</strong> {{ booking.get_pickup_state_display }}</p>
+                                    <p><strong>To:</strong> {{ booking.get_destination_state_display }}</p>
+                                    <p><strong>Delivery Cost:</strong> ₦{{ booking.delivery_cost|floatformat:2 }}</p>
+                                    <p><strong>Insurance:</strong> ₦{{ booking.insurance_payment|floatformat:2 }}</p>
+                                    <p><strong>Total Cost:</strong> ₦{{ booking.total_delivery_cost|floatformat:2 }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h5>Status</h5>
+                                    <p>
+                                        <span class="badge bg-{% if booking.booking_status == 'active' %}success{% elif booking.booking_status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                            {{ booking.get_booking_status_display }}
+                                        </span>
+                                        {% if booking.payment_completed %}
+                                            <span class="badge bg-success ms-2">Payment Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger ms-2">Payment Pending</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
             
             <!-- Pagination Controls -->
             <nav aria-label="Page navigation" class="mt-4">
@@ -201,4 +267,35 @@
         {% endif %}
     </div>
 </div>
+
+
+
+
+<script>
+// Add horizontal scroll hint on mobile
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run on mobile devices
+    if (window.innerWidth <= 768) {
+        const scrollContainer = document.querySelector('.mobile-scroll-container');
+        const scrollIndicator = document.querySelector('.scroll-indicator');
+        
+        // Show indicator only if scrolling is needed
+        if (scrollContainer.scrollWidth > scrollContainer.clientWidth) {
+            scrollIndicator.style.display = 'flex';
+            
+            // Hide indicator after first scroll
+            scrollContainer.addEventListener('scroll', function() {
+                scrollIndicator.style.opacity = '0';
+                setTimeout(() => {
+                    scrollIndicator.style.display = 'none';
+                }, 500);
+            });
+        } else {
+            scrollIndicator.style.display = 'none';
+        }
+    }
+});
+</script>
+
 {% endblock %}
+

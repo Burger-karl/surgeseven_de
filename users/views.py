@@ -21,6 +21,8 @@ from .utils import generate_random_otp
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
+from django.core.cache import cache
+from django_ratelimit.decorators import ratelimit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,68 +45,6 @@ def is_admin(user):
 
 OTP_EXPIRATION_MINUTES = 10
 
-# def send_gmail(to_email, subject, body):
-#     """Helper function to send emails using Gmail API"""
-#     try:
-#         creds = get_gmail_credentials()
-#         service = build('gmail', 'v1', credentials=creds)
-        
-#         message = MIMEText(body)
-#         message['to'] = to_email
-#         message['subject'] = subject
-#         raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-        
-#         service.users().messages().send(
-#             userId='me',
-#             body={'raw': raw}
-#         ).execute()
-#         return True
-#     except Exception as e:
-#         logger.error(f"Error sending email: {e}")  # Add proper logging
-#         return False
-    
-
-# class RegisterView(View):
-#     form_class = RegisterForm
-#     template_name = 'users/register.html'
-    
-#     def get(self, request, *args, **kwargs):
-#         referral_code = request.GET.get('ref')  # Get referral code from URL
-#         form = self.form_class(initial={'referral_code': referral_code})  # Pass referral code to form
-#         return render(request, self.template_name, {'form': form})
-
-#     def post(self, request, *args, **kwargs):
-#         form = self.form_class(request.POST)
-#         if form.is_valid():
-#             user_data = {
-#                 'email': form.cleaned_data['email'],
-#                 'username': form.cleaned_data['username'],
-#                 'password1': form.cleaned_data['password1'],
-#                 'password2': form.cleaned_data['password2'],
-#                 'user_type': form.cleaned_data['user_type'],
-#                 'referral_code': form.cleaned_data['referral_code']  # Add referral code to user_data
-#             }
-
-#             # Set is_staff and is_superuser flags for admin users
-#             if user_data['user_type'] == 'admin':
-#                 user_data['is_staff'] = True
-#                 user_data['is_superuser'] = True
-
-#             # Store user data in session until verification
-#             request.session['user_data'] = user_data
-
-#             # Generate and send OTP
-#             otp = get_random_string(length=6, allowed_chars='0123456789')
-#             request.session['otp'] = otp
-#             send_mail(
-#                 'Verify your email',
-#                 f'Your OTP is {otp}',
-#                 'from@example.com',
-#                 [user_data['email']],
-#             )
-#             messages.success(request, "An OTP has been sent to your email for verification.")
-#             return redirect('verify-email')
-#         return render(request, self.template_name, {'form': form})
 
 class RegisterView(View):
     form_class = RegisterForm
@@ -301,6 +241,73 @@ class LoginView(FormView):
 
         messages.error(self.request, "Invalid credentials.")
         return redirect('login')
+
+
+
+# class LoginView(FormView):
+#     form_class = LoginForm
+#     template_name = 'users/login.html'
+#     success_url = reverse_lazy('client_home')
+    
+#     # Rate limiting decorator - blocks after 5 attempts/hour per email
+#     @method_decorator(ratelimit(key='post:email', rate='5/h', method='POST', block=True))
+#     def post(self, request, *args, **kwargs):
+#         return super().post(request, *args, **kwargs)
+
+#     def form_valid(self, form):
+#         email = form.cleaned_data.get('email')
+#         password = form.cleaned_data.get('password')
+        
+#         # Additional manual rate limiting as defense-in-depth
+#         cache_key = f'login_attempts_{email}'
+#         attempts = cache.get(cache_key, 0)
+        
+#         if attempts >= 5:
+#             messages.error(
+#                 self.request,
+#                 "Too many failed attempts. Please try again in 1 hour or reset your password."
+#             )
+#             return redirect('login')
+        
+#         user = authenticate(email=email, password=password)
+
+#         if user:
+#             # Reset attempt counter on successful auth
+#             cache.delete(cache_key)
+            
+#             if not user.is_verified:
+#                 messages.error(
+#                     self.request,
+#                     "Account not verified. Please verify your email.",
+#                     extra_tags='security'
+#                 )
+#                 # Track unverified login attempts
+#                 logger.warning(f"Unverified login attempt: {email}")
+#                 return redirect('login')
+
+#             login(self.request, user)
+#             logger.info(f"Successful login: {email}")
+#             messages.success(self.request, "Logged in successfully.")
+
+#             # Redirect based on user type
+#             if user.is_superuser or user.is_staff:
+#                 return redirect('admin_home')
+#             elif user.user_type == 'truck_owner':
+#                 return redirect('truck_owner_home')
+#             return redirect('client_home')
+
+#         # Authentication failed - increment counter
+#         attempts = cache.get(cache_key, 0) + 1
+#         cache.set(cache_key, attempts, 3600)  # 1 hour expiration
+        
+#         logger.warning(f"Failed login attempt {attempts}/5 for: {email}")
+#         messages.error(
+#             self.request,
+#             "Invalid credentials.",
+#             extra_tags='security'
+#         )
+#         return redirect('login')
+
 
 
 class LogoutView(View):

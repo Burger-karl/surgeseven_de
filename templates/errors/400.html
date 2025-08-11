@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}400 Error{% endblock %}
+
+
+{% block main-content %}
+    <div class="container">
+        <h1>400: Bad Request</h1>
+        <p>Invalid request detected. Please check your input.</p>
+        <p><strong>Error Details:</strong> {{ exception }}</p>
+        <a href="/" class="btn btn-primary">Return Home</a>
+    </div>
+{% endblock %}
