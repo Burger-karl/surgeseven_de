@@ -6,7 +6,6 @@
 <section class="breadcrumbs">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-            
             <ol>
                 <li><a href="{% url 'truck_owner_home' %}">Home</a></li>
                 <li>Truck List</li>
@@ -16,18 +15,84 @@
 </section>
 {% endblock %}
 
+
 {% block main-content %}
+<style>
+    .activation-banner {
+        border-left: 4px solid #ffc107;
+        background-color: #fff8e1;
+        transition: all 0.3s ease;
+    }
+    .activation-banner:hover {
+        background-color: #ffecb3;
+        transform: translateY(-2px);
+    }
+    .activation-banner .btn-warning {
+        min-width: 120px;
+    }
+    .card {
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .card-title {
+        border-bottom: 2px solid #ffc107;
+        padding-bottom: 8px;
+    }
+    .status-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+    }
+</style>
+
 <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-warning">Your Trucks</h2>
+        <a href="{% url 'truck_create' %}" class="btn btn-warning">
+            <i class="bi bi-plus-circle"></i> Add New Truck
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="alert-container mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
     <div class="row">
         {% for truck in trucks %}
-        <div class="col-md-4">
-            <div class="card mt-5 mb-4">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if truck.activated %}
+                <span class="status-badge badge bg-success rounded-pill p-2">
+                    <i class="bi bi-check-circle-fill me-1"></i> Activated
+                </span>
+                {% else %}
+                <span class="status-badge badge bg-warning text-dark rounded-pill p-2">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Inactive
+                </span>
+                {% endif %}
+                
                 <!-- Carousel for truck images -->
                 <div id="carousel{{ truck.id }}" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
                         {% for image in truck.images.all %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ truck.name }}">
+                            <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ truck.name }}" style="height: 200px; object-fit: cover;">
+                        </div>
+                        {% empty %}
+                        <div class="carousel-item active">
+                            <img src="{% static 'assets/img/service-44.jpg' %}" class="d-block w-100" alt="Default truck image" style="height: 200px; object-fit: cover;">
                         </div>
                         {% endfor %}
                     </div>
@@ -43,11 +108,71 @@
                 <!-- End of Carousel -->
 
                 <div class="card-body">
-                    <h5 class="card-title text-warning"><strong>{{ truck.name }}</strong></h5>
-                    <p class="card-text text-warning"><strong>Weight Range: {{ truck.get_weight_range_display }}</strong></p>
-                    <p class="card-text text-warning"><strong>Location: {{ truck.state }}</strong></p>
-                    <p class="card-text text-warning"><strong>LGA: {{ truck.local_government }}</strong></p>
-                    <p class="card-text text-warning"><strong>Available: {{ truck.available|yesno:"Yes,No" }}</strong></p>
+                    <h5 class="card-title text-warning mb-3">{{ truck.name }}</h5>
+                    
+                    <div class="mb-3 text-dark">
+                        <p class="mb-1"><strong>Weight Range:</strong> {{ truck.get_weight_range_display }}</p>
+                        <p class="mb-1"><strong>Location:</strong> {{ truck.get_state_display }}</p>
+                        <p class="mb-1"><strong>LGA:</strong> {{ truck.local_government }}</p>
+                        <p class="mb-1"><strong>Available:</strong> 
+                            <span class="badge bg-{% if truck.available %}success{% else %}secondary{% endif %}">
+                                {{ truck.available|yesno:"Yes,No" }}
+                            </span>
+                        </p>
+                        <p class="mb-0"><strong>Status:</strong> 
+                            <span class="badge bg-{% if truck.activated %}success{% else %}warning text-dark{% endif %}">
+                                {{ truck.activated|yesno:"Activated,Pending Activation" }}
+                            </span>
+                        </p>
+                    </div>
+                    
+                    {% if truck.tracker_id %}
+                    <div class="alert alert-info p-2 mb-0">
+                        <i class="bi bi-geo-alt-fill me-1"></i>
+                        <strong>Tracker ID:</strong> {{ truck.tracker_id }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Activation Payment Banner -->
+                {% if not truck.activated %}
+                <div class="card-footer activation-banner py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-lightning-charge fs-4 text-warning me-2"></i>
+                                <div>
+                                    <h6 class="mb-0 text-dark">Activation Required</h6>
+                                    <small class="text-muted">Pay ₦85,000 to activate this truck</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if truck.has_pending_payment %}
+                            <a href="#" class="btn btn-outline-warning">
+                                <i class="bi bi-hourglass-split me-1"></i> Payment Pending
+                            </a>
+                            {% else %}
+                            <a href="{% url 'activate-truck' truck.id %}" class="btn btn-warning">
+                                <i class="bi bi-currency-exchange me-1"></i> Activate Now
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card text-center py-5">
+                <div class="card-body">
+                    <i class="bi bi-truck text-warning" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3 text-warning">No Trucks Registered</h3>
+                    <p class="text-muted">You haven't added any trucks to your account yet</p>
+                    <a href="{% url 'truck_create' %}" class="btn btn-warning mt-2">
+                        <i class="bi bi-plus-circle"></i> Add Your First Truck
+                    </a>
                 </div>
             </div>
         </div>

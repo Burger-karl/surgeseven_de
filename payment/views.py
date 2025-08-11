@@ -8,7 +8,7 @@ from subscriptions.models import SubscriptionPlan, UserSubscription
 from django.contrib.auth.decorators import login_required
 import uuid
 from django.contrib import messages
-from booking.models import Booking
+from booking.models import Booking, Truck
 
 # Create your views here.
 
@@ -207,6 +207,121 @@ class VerifyBookingPaymentView(LoginRequiredMixin, View):
         except Exception as e:
             logger.error(f"Error sending receipt email: {str(e)}")
 
+
+class CreateTruckActivationPaymentView(LoginRequiredMixin, View):
+    def get(self, request, truck_id):
+        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
+        
+        # Check if already activated
+        if truck.activated:
+            messages.info(request, 'This truck is already activated.')
+            return redirect('truck_list')
+        
+        # Check for existing pending payment
+        existing_payment = Payment.objects.filter(
+            truck=truck, 
+            payment_type=Payment.TRUCK_ACTIVATION,
+            verified=False
+        ).first()
+        
+        if existing_payment:
+            # Redirect to existing payment verification
+            return redirect('verify-truck-activation-payment', ref=existing_payment.ref)
+        
+        context = {
+            'truck': truck,
+            'amount': 85000,
+            'description': 'Truck Activation Fee - Required for inspection and tracker assignment'
+        }
+        return render(request, 'payment/truck_activation_confirmation.html', context)
+    
+    def post(self, request, truck_id):
+        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
+        
+        # Prevent duplicate activation
+        if truck.activated:
+            messages.info(request, 'This truck is already activated.')
+            return redirect('truck_list')
+        
+        amount = 85000 * 100  # Convert to kobo
+        email = request.user.email
+        reference = str(uuid.uuid4())
+        
+        # Create payment record
+        payment = Payment.objects.create(
+            user=request.user,
+            truck=truck,
+            amount=amount,
+            ref=reference,
+            email=email,
+            verified=False,
+            payment_type=Payment.TRUCK_ACTIVATION
+        )
+        
+        callback_url = request.build_absolute_uri(
+            reverse('verify-truck-activation-payment', kwargs={'ref': reference})
+        )
+        
+        response = paystack_client.initialize_transaction(email, amount, reference, callback_url)
+        
+        if response['status']:
+            return redirect(response['data']['authorization_url'])
+        else:
+            payment.delete()
+            messages.error(request, 'Payment initialization failed. Please try again.')
+            return redirect('truck_list')
+
+
+class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
+    def get(self, request, ref):
+        payment = get_object_or_404(Payment, ref=ref, payment_type=Payment.TRUCK_ACTIVATION)
+        response = paystack_client.verify_transaction(ref)
+        
+        if response['status'] and response['data']['status'] == 'success':
+            payment.verified = True
+            payment.save()
+            
+            # Activate the truck
+            truck = payment.truck
+            truck.activated = True
+            truck.activation_payment = payment
+            truck.save()
+            
+            # Send notification email
+            self.send_activation_email(truck)
+            
+            messages.success(
+                request, 
+                'Truck activation payment successful! Your truck will be inspected shortly.'
+            )
+            return redirect('truck_list')
+        else:
+            messages.error(request, 'Payment verification failed. Please contact support.')
+            return redirect('truck_list')
+    
+    def send_activation_email(self, truck):
+        subject = f"Truck Activation Successful - {truck.name}"
+        context = {
+            'truck': truck,
+            'owner': truck.owner,
+            'amount': 85000
+        }
+        html_content = render_to_string('payment/truck_activation_email.html', context)
+        plain_message = strip_tags(html_content)
+        
+        message = Mail(
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to_emails=truck.owner.email,
+            subject=subject,
+            html_content=html_content,
+            plain_text_content=plain_message
+        )
+        
+        try:
+            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+            sg.send(message)
+        except Exception as e:
+            logger.error(f"Error sending truck activation email: {str(e)}")
 
 
 # WITHDRAWAL

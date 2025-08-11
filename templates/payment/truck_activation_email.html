@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header { 
+            background: linear-gradient(135deg, #1a3a8f, #0d6efd);
+            padding: 30px 20px; 
+            text-align: center; 
+            color: white;
+        }
+        .logo { 
+            max-height: 80px; 
+            margin-bottom: 15px;
+        }
+        .content { 
+            padding: 30px; 
+        }
+        .footer { 
+            margin-top: 20px; 
+            padding: 20px; 
+            font-size: 13px; 
+            color: #777; 
+            text-align: center;
+            background-color: #f1f5f9;
+        }
+        .details-card { 
+            margin: 25px 0; 
+            border: 1px solid #e0e7ff; 
+            border-radius: 10px;
+            padding: 25px; 
+            background: #f8fafc;
+        }
+        .detail-item { 
+            margin-bottom: 15px; 
+            display: flex;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 12px;
+        }
+        .detail-label { 
+            font-weight: 600; 
+            width: 45%;
+            color: #4b5563;
+        }
+        .detail-value { 
+            width: 55%;
+            color: #1e293b;
+        }
+        .payment-summary {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .total {
+            font-weight: 700;
+            font-size: 18px;
+            color: #166534;
+            border-top: 2px solid #bbf7d0;
+            padding-top: 12px;
+            margin-top: 8px;
+        }
+        .next-steps {
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .steps-list {
+            margin: 15px 0 0 20px;
+        }
+        .steps-list li {
+            margin-bottom: 10px;
+        }
+        .btn {
+            display: inline-block;
+            background: #0d6efd;
+            color: white !important;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .btn:hover {
+            background: #0b5ed7;
+        }
+        .contact-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .text-center {
+            text-align: center;
+        }
+        h3 {
+            color: #1e40af;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://surgesevenltd.com/static/assets/img/surge-seven-3.png" alt="SurgeSeven Logo" class="logo">
+            <h2>Truck Activation Confirmation</h2>
+        </div>
+        
+        <div class="content">
+            <p>Hello {{ truck.owner.get_full_name }},</p>
+            <p>Thank you for activating your truck <strong>{{ truck.name }}</strong> with SurgeSeven Logistics. Your truck is now in our system and will be inspected shortly.</p>
+            
+            <div class="details-card">
+                <h3>Truck Details</h3>
+                <div class="detail-item">
+                    <div class="detail-label">Truck Name:</div>
+                    <div class="detail-value">{{ truck.name }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Weight Range:</div>
+                    <div class="detail-value">{{ truck.get_weight_range_display }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Location:</div>
+                    <div class="detail-value">{{ truck.get_state_display }}, {{ truck.local_government }}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Owner:</div>
+                    <div class="detail-value">{{ truck.owner.get_full_name }} ({{ truck.owner.email }})</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Activation Date:</div>
+                    <div class="detail-value">{{ payment.date_created|date:"F j, Y, g:i a" }}</div>
+                </div>
+            </div>
+            
+            <div class="payment-summary">
+                <h3>Payment Summary</h3>
+                <div class="payment-item">
+                    <div>Truck Activation Fee:</div>
+                    <div>₦85,000.00</div>
+                </div>
+                <div class="payment-item">
+                    <div>Transaction Fee:</div>
+                    <div>₦0.00</div>
+                </div>
+                <div class="payment-item total">
+                    <div>Total Paid:</div>
+                    <div>₦85,000.00</div>
+                </div>
+                <div class="payment-item">
+                    <div>Payment Reference:</div>
+                    <div>{{ payment.ref }}</div>
+                </div>
+                <div class="payment-item">
+                    <div>Payment Status:</div>
+                    <div><strong class="text-success">Verified</strong></div>
+                </div>
+            </div>
+            
+            <div class="next-steps">
+                <h3>What Happens Next?</h3>
+                <ul class="steps-list">
+                    <li><strong>Inspection Scheduled:</strong> Our team will contact you within 24 hours to schedule an inspection.</li>
+                    <li><strong>Tracker Installation:</strong> After passing inspection, a GPS tracker will be installed on your truck.</li>
+                    <li><strong>Activation Completion:</strong> Once the tracker is installed, your truck will be fully activated in our system.</li>
+                    <li><strong>Start Earning:</strong> Your truck will appear in our booking system and start receiving delivery requests.</li>
+                </ul>
+                <p>Expect 2-3 business days for the entire activation process.</p>
+            </div>
+            
+            <div class="text-center">
+                <a href="https://surgesevenltd.com/trucks/" class="btn">
+                    View Your Truck Dashboard
+                </a>
+            </div>
+            
+            <div class="contact-info">
+                <p><strong>Need Assistance?</strong></p>
+                <p>Contact our Truck Activation Team:</p>
+                <p>📞 +234 812 345 6789 | ✉️ truck-activation@surgesevenltd.com</p>
+                <p>Business Hours: Monday-Friday, 8:00 AM - 6:00 PM</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>&copy; {% now "Y" %} SurgeSeven Logistics Limited. All rights reserved.</p>
+            <p>KM 10 Lekki-Epe Expressway, Lagos, Nigeria</p>
+        </div>
+    </div>
+</body>
+</html>

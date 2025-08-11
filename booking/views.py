@@ -12,6 +12,7 @@ from .forms import TruckForm, BookingForm, TruckApprovalForm, TruckImageForm, Ad
 from .models import Truck, Booking, TruckImage
 from subscriptions.models import UserSubscription, SubscriptionPlan
 from users.models import ReferralBonus, Referral, User
+from payment.models import Payment
 from django.db.models import F
 from django.db import transaction, models
 
@@ -71,6 +72,18 @@ class TruckCreateView(CreateView):
 
 
 # Truck List View
+# @method_decorator(login_required, name='dispatch')
+# class TruckListView(ListView):
+#     model = Truck
+#     template_name = 'booking/truck_list.html'
+#     context_object_name = 'trucks'
+
+#     def get_queryset(self):
+#         if self.request.user.user_type == 'truck_owner':
+#             return Truck.objects.filter(owner=self.request.user)
+#         return Truck.objects.filter(available=True)
+
+
 @method_decorator(login_required, name='dispatch')
 class TruckListView(ListView):
     model = Truck
@@ -80,7 +93,21 @@ class TruckListView(ListView):
     def get_queryset(self):
         if self.request.user.user_type == 'truck_owner':
             return Truck.objects.filter(owner=self.request.user)
-        return Truck.objects.filter(available=True)
+        return Truck.objects.filter(available=True, activated=True)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.user_type == 'truck_owner':
+            # Add activation status for owner's trucks
+            trucks = context['trucks']
+            for truck in trucks:
+                truck.needs_activation = not truck.activated
+                truck.has_pending_payment = Payment.objects.filter(
+                    truck=truck,
+                    payment_type=Payment.TRUCK_ACTIVATION,
+                    verified=False
+                ).exists()
+        return context
 
 
 # Booking Create View
@@ -357,9 +384,27 @@ class AdminTruckListView(View):
     template_name = 'booking/admin_truck_list.html'
     success_url = reverse_lazy('admin_truck_list')
 
+    # def get(self, request):
+    #     trucks = Truck.objects.filter(available=False).prefetch_related('images')
+    #     paginator = Paginator(trucks, 5)  # Show 5 trucks per page
+    #     page_number = request.GET.get('page')
+    #     page_obj = paginator.get_page(page_number)
+
+    #     form = TruckApprovalForm()
+    #     context = {
+    #         'page_obj': page_obj,
+    #         'form': form,
+    #     }
+    #     return render(request, self.template_name, context)
+    
     def get(self, request):
-        trucks = Truck.objects.filter(available=False).prefetch_related('images')
-        paginator = Paginator(trucks, 5)  # Show 5 trucks per page
+        
+        trucks = Truck.objects.filter(
+            activated=True, 
+            available=False
+        ).prefetch_related('images')
+        
+        paginator = Paginator(trucks, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 

@@ -9,6 +9,17 @@ from subscriptions.models import UserSubscription
 paystack_sync = PayStackBase
 
 class Payment(models.Model):
+
+    SUBSCRIPTION = 'subscription'
+    BOOKING = 'booking'
+    TRUCK_ACTIVATION = 'truck_activation'
+    
+    PAYMENT_TYPE_CHOICES = [
+        (SUBSCRIPTION, 'Subscription'),
+        (BOOKING, 'Booking'),
+        (TRUCK_ACTIVATION, 'Truck Activation'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     subscription = models.ForeignKey('subscriptions.SubscriptionPlan', null=True, blank=True, on_delete=models.SET_NULL)
     booking = models.ForeignKey('booking.Booking', null=True, blank=True, on_delete=models.SET_NULL)
@@ -17,6 +28,8 @@ class Payment(models.Model):
     email = models.EmailField()
     verified = models.BooleanField(default=False)
     date_created = models.DateTimeField(auto_now_add=True)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default=BOOKING)
+    truck = models.ForeignKey('booking.Truck', null=True, blank=True, on_delete=models.SET_NULL, related_name='payments')
 
     def __str__(self):
         if self.subscription:

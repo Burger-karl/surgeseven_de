@@ -36,14 +36,18 @@ class Truck(models.Model):
     state = models.CharField(max_length=20, choices=STATES_CHOICES)
     local_government = models.CharField(max_length=255)
     tracker_id = models.CharField(max_length=255, unique=True, null=True, blank=True)  # Assigned by admin
+    activated = models.BooleanField(default=False)  # New activation status field
+    activation_payment = models.ForeignKey('payment.Payment', null=True, blank=True, on_delete=models.SET_NULL, related_name='activated_truck')
 
     def __str__(self):
         return f"{self.name} ({self.owner.username})"
     
-    
     def clean(self):
         if self.pk and self.images.count() != 3:
             raise ValidationError("A truck must have exactly 3 images.")
+        
+    def is_activation_paid(self):
+        return self.activated and self.activation_payment and self.activation_payment.verified
 
 
 
