@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}HomePage{% endblock title %}
+    
+{% block banner-slider %}
+
+    <!-- ======= Hero  Section ======= -->
+    <section id="truckhero" class="mt-5 d-flex align-items-center">
+        <div class="container position-relative text-center text-lg-start" data-aos="zoom-in" data-aos-delay="100" >
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1>Welcome Prospective clients, truck owners to  <span>SurgeSeven</span></h1>
+                    <h2>Looking forward to delivering top notch transportation and delivery services!</h2>
+
+                    <div class="btns">
+                        <a href="{% url 'register' %}" class="btn-menu animated fadeInUp scrollto">Register with Us</a>
+                        <a href="{% url 'login' %}" class="btn-book animated fadeInUp scrollto">Login</a>
+                    </div>
+                </div>
+        
+                <!-- <div class="col-lg-4 d-flex align-items-center justify-content-center position-relative" data-aos="zoom-in" data-aos-delay="200">
+                    <a href="https://www.youtube.com/watch?v=u6BOC7CDUTQ" class="glightbox play-btn"></a>
+                </div> -->
+
+            </div>
+        </div>
+    </section>
+    <!-- End Hero -->
+
+{% endblock %}
+
+{% block main-content %}
+
+    <!-- ======= About Section ======= -->
+<section id="about1" class="about1">
+    <div class="container" data-aos="fade-up">
+
+        <div class="section-header">
+            <h2>About Us</h2>
+            <p>Learn More <span>About Us</span></p>
+        </div>
+
+        <div class="row gy-4">
+            <div class="col-lg-7 position-relative about-img" style="background-image: url({% static './assets/img/b4.jpg' %}) ;" data-aos="fade-up" data-aos-delay="150">
+                <div class="call-us position-absolute">
+                    <h4>Book a Truck</h4>
+                    <p>0701 888 4096</p>
+                </div>
+            </div>
+        
+            <div class="col-lg-5 d-flex align-items-end" data-aos="fade-up" data-aos-delay="300">
+                <div class="content ps-0 ps-lg-5">
+                    <p class="fst-italic">
+                        
+                        With SURGE SEVEN Logistics, you can trust that your goods are in good hands. Our team is dedicated to providing reliable, transparent, and secure transportation services that meet your needs.
+                    </p>
+                    
+                    <ul>
+                        <li><i class="bi bi-check2-all"></i> Seasoned professionals with extensive experience in haulage and transportation.</li>
+                        <li><i class="bi bi-check2-all"></i> Skilled developers and engineers who maintain and improve our mobile application.</li>
+                        <li><i class="bi bi-check2-all"></i>  Friendly and responsive representatives who prioritize customer satisfaction.</li>
+                    </ul>
+                    <p>
+                        Our team at SURGE SEVEN Logistics consists of experienced professionals dedicated to delivering exceptional services. With expertise in logistics, technology, and customer service, we're committed to setting new standards in the industry.
+                    </p>
+
+                    <div class="position-relative mt-4">
+                        <img src="{% static 'assets/img/service-3.jpg' %}" class="img-fluid" alt="">
+                        <a href="https://www.youtube.com/watch?v=LXb3EKWsInQ" class="glightbox play-btn"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </section><!-- End About Section -->
+{% endblock %}

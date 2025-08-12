@@ -36,32 +36,35 @@
                     <h5 class="mb-0">Tracking Information</h5>
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Latitude</th>
-                                <th>Longitude</th>
-                                <th>Speed (km/h)</th>
-                                <th>Last Updated</th>
-                                {% if is_admin %}
-                                <th>Battery</th>
-                                <th>Signal</th>
-                                {% endif %}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="tracking-info">
-                                <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
-                                <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
-                                <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
-                                <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
-                                {% if is_admin %}
-                                <td id="battery">{{ tracker_data.voltage|default:"-" }}V</td>
-                                <td id="signal">{{ tracker_data.gps_satellites|default:"0" }} satellites</td>
-                                {% endif %}
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- FIX: Added table-responsive for mobile scrolling -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Latitude</th>
+                                    <th>Longitude</th>
+                                    <th>Speed (km/h)</th>
+                                    <th>Last Updated</th>
+                                    {% if is_admin %}
+                                    <th>Battery</th>
+                                    <th>Signal</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="tracking-info">
+                                    <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
+                                    <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
+                                    <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
+                                    <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
+                                    {% if is_admin %}
+                                    <td id="battery">{{ tracker_data.voltage|default:"-" }}V</td>
+                                    <td id="signal">{{ tracker_data.gps_satellites|default:"0" }} satellites</td>
+                                    {% endif %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,17 +109,35 @@
 <!-- Leaflet.awesome-markers for better markers -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
+<!-- Leaflet Plugins for better map details -->
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Initialize map with default center (will be updated with real data)
-    var map = L.map('map').setView([0, 0], 2);
+    // Initialize map with default center
+    var map = L.map('map', {
+        zoomControl: true,
+        maxZoom: 18,
+        minZoom: 3
+    }).setView([0, 0], 2);
     
-    // Add tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18
+    // FIX: Use detailed map tiles with street names
+    // CartoDB Voyager tiles (shows street names and details)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 19
     }).addTo(map);
+    
+    // Add geocoder for reverse lookup
+    L.Control.geocoder({
+        defaultMarkGeocode: false,
+        position: 'topleft'
+    })
+    .on('markgeocode', function(e) {
+        map.fitBounds(e.geocode.bbox);
+    })
+    .addTo(map);
 
     // Create a custom truck icon
     var truckIcon = L.AwesomeMarkers.icon({
@@ -131,6 +152,9 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // Add circle for accuracy if available
     var accuracyCircle = L.circle([0, 0], {radius: 0}).addTo(map);
+    
+    // Add scale control
+    L.control.scale().addTo(map);
 
     // Function to format date/time
     function formatDateTime(timestamp) {
@@ -201,36 +225,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Function to fetch tracking data
     function fetchTrackingData() {
-    fetch("{% url 'fetch_tracking_data' truck.id %}")
-        .then(response => {
-            if (!response.ok) {
-                // Log the full response for debugging
-                return response.text().then(text => {
-                    console.error('Failed response:', text);
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Received data:', data); // Log the received data
-            if (data.error) {
-                console.error('Tracking error:', data.error);
-                if (!window.trackingDataLoaded) {
-                    alert('Error loading tracking data: ' + data.error);
+        fetch("{% url 'fetch_tracking_data' truck.id %}")
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Failed response:', text);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    });
                 }
-            } else {
-                updateUI(data);
-                window.trackingDataLoaded = true;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching tracking data:', error);
-            if (!window.trackingDataLoaded) {
-                alert('Failed to connect to tracking service. Please try again later.');
-            }
-        });
-}
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received data:', data);
+                if (data.error) {
+                    console.error('Tracking error:', data.error);
+                    if (!window.trackingDataLoaded) {
+                        alert('Error loading tracking data: ' + data.error);
+                    }
+                } else {
+                    updateUI(data);
+                    window.trackingDataLoaded = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching tracking data:', error);
+                if (!window.trackingDataLoaded) {
+                    alert('Failed to connect to tracking service. Please try again later.');
+                }
+            });
+    }
 
     // Initial data load
     fetchTrackingData();
@@ -257,6 +280,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     .table th {
         white-space: nowrap;
+    }
+    /* FIX: Mobile table scrolling */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Ensure map controls are visible on mobile */
+    .leaflet-top, .leaflet-bottom {
+        z-index: 400;
     }
 </style>
 {% endblock %}

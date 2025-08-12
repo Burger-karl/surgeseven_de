@@ -20,6 +20,9 @@ User = get_user_model()
 
 # Create your views here.
 
+class GuestHomeView(TemplateView):
+    template_name = 'dashboard/guest_home.html'
+
 @method_decorator(login_required, name='dispatch')
 class ClientHomeView(ListView):
     model = Truck

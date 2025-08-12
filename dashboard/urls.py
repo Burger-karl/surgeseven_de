@@ -2,11 +2,12 @@ from django.urls import path
 from .views import (ClientDashboardView, 
     TruckOwnerDashboardView, AboutView, 
     ClientHomeView, TruckOwnerHomeView, 
-    AdminHomeView, AdminDashboardView,
+    AdminHomeView, AdminDashboardView, 
 )
 
 
 urlpatterns = [
+    # path('guest/home/', GuestHomeView.as_view(), name='guest_home'),
     path('client/home/', ClientHomeView.as_view(), name='client_home'),
     path('truck-owner/home/', TruckOwnerHomeView.as_view(), name='truck_owner_home'),
     path('home/', AdminHomeView.as_view(), name='admin_home'),

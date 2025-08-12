@@ -36,9 +36,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from dashboard.views import GuestHomeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', GuestHomeView.as_view(), name='home'),
     path('dashboard/', include('dashboard.urls')),  # Add prefix
     path('accounts/', include('users.urls')),
     path('subscription/', include('subscriptions.urls')),
@@ -49,7 +51,7 @@ urlpatterns = [
     path('tracker/', include('tracker.urls')),
 
     # Root redirect - must be last in this section
-    path('', RedirectView.as_view(url='accounts/login/', permanent=False)),
+    # path('', RedirectView.as_view(url='guest/home/', permanent=False)),
 ]
 
 # Media files in development only
