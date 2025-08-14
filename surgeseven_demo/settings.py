@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import cloudinary
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -61,7 +62,11 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    # 'allauth.socialaccount.providers.google'
+    # 'allauth.socialaccount.providers.google',
+
+    'storages',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 REST_FRAMEWORK = {
@@ -226,8 +231,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR/'media'
+
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR/'media'
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -255,3 +261,47 @@ FLUTTERWAVE_SECRET_KEY = os.getenv("FLUTTERWAVE_SECRET_KEY")
 
 MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024
 
+
+# Cloudinary configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv("CLOUD_NAME"),
+    'API_KEY': os.getenv("API_KEY"),
+    'API_SECRET': os.getenv("API_SECRET"),
+    'SECURE': True,
+    'MEDIA_TAG': 'surgeseven-media',
+    'INVALID_VIDEO_ERROR_MESSAGE': 'Please upload a valid video file',
+    'EXCLUDE_DELETE_ORPHANED_MEDIA_PATHS': (),
+    'STATIC_TAG': 'surgeseven-static',
+    'STATICFILES_MANIFEST_ROOT': os.path.join(BASE_DIR, 'manifest'),
+}
+
+# Initialize Cloudinary SDK
+cloudinary.config(
+    cloud_name=os.getenv("CLOUD_NAME"),
+    api_key=os.getenv("API_KEY"),
+    api_secret=os.getenv("API_SECRET"),
+    secure=True
+)
+
+# Media files configuration
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+MEDIA_URL = '/media/' 
+
+
+# S3 Configuration
+# AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")      # Replace with your IAM user access key
+# AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")  # Replace with your IAM user secret key
+# AWS_STORAGE_BUCKET_NAME = 'surgeseven'
+# AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")  # e.g., 'us-east-1'
+# AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+# AWS_S3_OBJECT_PARAMETERS = {
+#     'CacheControl': 'max-age=86400',
+# }
+
+# Static files (if you want to serve static files from S3)
+# STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Media files configuration
+# MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

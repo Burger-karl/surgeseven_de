@@ -120,6 +120,33 @@ class TruckApprovalForm(forms.Form):
         ]
 
 
+class TruckEditForm(forms.ModelForm):
+    class Meta:
+        model = Truck
+        fields = [
+            'name', 'weight_range', 'available', 'state', 
+            'local_government', 'tracker_id', 'activated'
+        ]
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'weight_range': forms.Select(attrs={'class': 'form-select'}),
+            'state': forms.Select(attrs={'class': 'form-select'}),
+            'local_government': forms.TextInput(attrs={'class': 'form-control'}),
+            'tracker_id': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+    
+    def clean_tracker_id(self):
+        tracker_id = self.cleaned_data['tracker_id']
+        if tracker_id:
+            # Ensure tracker ID is unique except for blank values
+            qs = Truck.objects.filter(tracker_id=tracker_id)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("This tracker ID is already in use.")
+        return tracker_id
+
+
 class AdminBookingForm(forms.ModelForm):
     class Meta:
         model = Booking

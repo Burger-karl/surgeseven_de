@@ -4,6 +4,7 @@ from .managers import CustomUserManager
 from django.utils import timezone
 from datetime import timedelta
 import uuid
+from cloudinary.models import CloudinaryField
 
 # Create your models here.
 
@@ -72,7 +73,7 @@ class PasswordResetToken(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+    profile_image = CloudinaryField('image', folder='profile_images/', default='default_profile')
     full_name = models.CharField(max_length=255, blank=True)
     address = models.TextField(blank=True)
     phone_number = models.CharField(max_length=15, blank=True)

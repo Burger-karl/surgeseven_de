@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Admin Truck List Page{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Truck</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between text-secondary align-items-center pb-0">
+                    <h5 class="mb-0">Edit Truck: {{ object.name }}</h5>
+                    <a href="{% url 'admin_all_trucks' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="row text-secondary">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Truck Name</label>
+                                    {{ form.name }}
+                                    {% for error in form.name.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Weight Range</label>
+                                    {{ form.weight_range }}
+                                    {% for error in form.weight_range.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3 text-secondary">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">State</label>
+                                    {{ form.state }}
+                                    {% for error in form.state.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Local Government</label>
+                                    {{ form.local_government }}
+                                    {% for error in form.local_government.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Tracker ID</label>
+                                    {{ form.tracker_id }}
+                                    {% for error in form.tracker_id.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3 text-secondary">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ form.activated }}
+                                    <label class="form-check-label" for="{{ form.activated.id_for_label }}">
+                                        Activated
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    {{ form.available }}
+                                    <label class="form-check-label" for="{{ form.available.id_for_label }}">
+                                        Available for Booking
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Truck Images Section -->
+            <div class="card mb-4">
+                <div class="card-header text-secondary">
+                    <h5 class="mb-0">Truck Images</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for image in object.images.all %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card">
+                                <img src="{{ image.image.url }}" class="card-img-top" alt="Truck Image">
+                                <div class="card-body">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,19 +2,21 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
-from django.views.generic import CreateView, ListView, UpdateView, View, DetailView
+from django.views.generic import CreateView, ListView, UpdateView, View, DetailView, DeleteView
 from django.urls import reverse_lazy
 from django.http import JsonResponse, Http404
 from django.contrib import messages
 from django.core.paginator import Paginator
 from decimal import Decimal, InvalidOperation
-from .forms import TruckForm, BookingForm, TruckApprovalForm, TruckImageForm, AdminBookingForm
+from .forms import TruckForm, BookingForm, TruckApprovalForm, TruckImageForm, AdminBookingForm, TruckEditForm
 from .models import Truck, Booking, TruckImage
 from subscriptions.models import UserSubscription, SubscriptionPlan
 from users.models import ReferralBonus, Referral, User
 from payment.models import Payment
 from django.db.models import F
 from django.db import transaction, models
+from django.contrib.messages.views import SuccessMessageMixin
+
 
 # Create your views here.
 
@@ -376,6 +378,12 @@ class AvailableTruckListView(ListView):
 
 
 
+
+
+
+
+
+
 # ADMIN
 
 # Admin Truck List View with Pagination
@@ -467,7 +475,63 @@ class AdminTruckDetailView(View):
         else:
             messages.error(request, 'Invalid action.')
         return redirect(self.success_url)
+
+
+
+@method_decorator(admin_required, name='dispatch')
+class AdminAllTrucksListView(ListView):
+    model = Truck
+    template_name = 'booking/admin_all_trucks.html'
+    context_object_name = 'trucks'
+    paginate_by = 10
+    ordering = ['-id']
     
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Filtering based on query parameters
+        status = self.request.GET.get('status')
+        if status == 'active':
+            queryset = queryset.filter(activated=True, available=True)
+        elif status == 'pending':
+            queryset = queryset.filter(activated=False)
+        elif status == 'inactive':
+            queryset = queryset.filter(activated=True, available=False)
+        return queryset.prefetch_related('images')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['status_filter'] = self.request.GET.get('status', 'all')
+        return context
+
+
+@method_decorator(admin_required, name='dispatch')
+class AdminTruckEditView(UpdateView):
+    model = Truck
+    form_class = TruckEditForm
+    template_name = 'booking/admin_truck_edit.html'
+    success_url = reverse_lazy('admin_all_trucks')
+    
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Truck "{self.object.name}" updated successfully')
+        return response
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Please correct the errors below')
+        return super().form_invalid(form)
+
+
+@method_decorator(admin_required, name='dispatch')
+class AdminTruckDeleteView(SuccessMessageMixin, DeleteView):
+    model = Truck
+    template_name = 'booking/admin_truck_confirm_delete.html'
+    success_url = reverse_lazy('admin_all_trucks')
+    success_message = "Truck deleted successfully"
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, self.success_message)
+        return super().delete(request, *args, **kwargs)
+
 
 # Booking Update Delivery Cost View
 @method_decorator(admin_required, name='dispatch')

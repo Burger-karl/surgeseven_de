@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}All Trucks{% endblock title %}
+
+{% block banner-slider %}
+<section class="breadcrumbs">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <ol>
+                <li><a href="#">Home</a></li>
+                <li>Truck</li>
+            </ol>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block main-content %}
+
+<style>
+    /* Mobile-specific optimizations */
+    @media (max-width: 767.98px) {
+        .table-responsive {
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        
+        /* Make table cells stack vertically on extra small screens */
+        .table.align-items-center {
+            width: 100%;
+        }
+        
+        .table.align-items-center thead {
+            display: none;
+        }
+        
+        .table.align-items-center tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+        }
+        
+        .table.align-items-center tbody td {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .table.align-items-center tbody td:last-child {
+            border-bottom: none;
+        }
+        
+        .table.align-items-center tbody td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 1rem;
+            flex: 1;
+            color: #495057;
+        }
+        
+        .table.align-items-center tbody td > div {
+            flex: 2;
+            text-align: right;
+        }
+        
+        /* Add data labels for mobile view */
+        .table.align-items-center tbody td:nth-child(1)::before { content: "Truck"; }
+        .table.align-items-center tbody td:nth-child(2)::before { content: "Owner"; }
+        .table.align-items-center tbody td:nth-child(3)::before { content: "Status"; }
+        .table.align-items-center tbody td:nth-child(4)::before { content: "Tracker ID"; }
+        .table.align-items-center tbody td:nth-child(5)::before { content: "Actions"; }
+    }
+</style>
+
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center pb-0">
+                    <h5 class="mb-0 text-dark">All Trucks</h5>
+                    <div class="d-flex">
+                        <div class="dropdown me-2">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="statusFilter" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if status_filter == 'all' %}All Trucks{% endif %}
+                                {% if status_filter == 'active' %}Active Only{% endif %}
+                                {% if status_filter == 'pending' %}Pending Activation{% endif %}
+                                {% if status_filter == 'inactive' %}Inactive{% endif %}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="statusFilter">
+                                <li><a class="dropdown-item" href="?status=all">All Trucks</a></li>
+                                <li><a class="dropdown-item" href="?status=active">Active Only</a></li>
+                                <li><a class="dropdown-item" href="?status=pending">Pending Activation</a></li>
+                                <li><a class="dropdown-item" href="?status=inactive">Inactive</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <!-- Added responsive wrapper with horizontal scroll -->
+                    <div class="table-responsive" style="overflow-x: auto;">
+                        <table class="table align-items-center mb-0" style="min-width: 600px;">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Truck</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2 d-none d-md-table-cell">Owner</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 d-none d-sm-table-cell">Tracker ID</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for truck in trucks %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex px-2 py-1">
+                                            {% with truck.images.first as first_image %}
+                                            <div class="d-none d-sm-block">
+                                                <img src="{{ first_image.image.url }}" class="avatar avatar-sm me-3" alt="{{ truck.name }}">
+                                            </div>
+                                            {% endwith %}
+                                            <div class="d-flex flex-column justify-content-center">
+                                                <h6 class="mb-0 text-sm">{{ truck.name }}</h6>
+                                                <p class="text-xs text-secondary mb-0">{{ truck.get_weight_range_display }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">
+                                        <p class="text-xs font-weight-bold mb-0">{{ truck.owner.get_full_name }}</p>
+                                        <p class="text-xs text-secondary mb-0">{{ truck.owner.email }}</p>
+                                    </td>
+                                    <td class="align-middle text-center text-sm">
+                                        {% if truck.activated and truck.available %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% elif truck.activated %}
+                                        <span class="badge bg-warning">Inactive</span>
+                                        {% else %}
+                                        <span class="badge bg-info">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle text-center d-none d-sm-table-cell">
+                                        <span class="text-secondary text-xs font-weight-bold">{{ truck.tracker_id|default:"Not assigned" }}</span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{% url 'admin_truck_edit' truck.pk %}" class="btn btn-sm btn-outline-info" data-toggle="tooltip" title="Edit">
+                                                <i class="bi bi-info-circle-fill"></i>
+                                            </a>
+                                            <a href="{% url 'admin_truck_delete' truck.pk %}" class="btn btn-sm btn-outline-danger" data-toggle="tooltip" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">No trucks found</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% if is_paginated %}
+                <div class="card-footer d-flex justify-content-end">
+                    <nav aria-label="Truck pagination">
+                        <ul class="pagination mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status_filter }}" tabindex="-1">Previous</a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in page_obj.paginator.page_range %}
+                            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                                <a class="page-link" href="?page={{ i }}&status={{ status_filter }}">{{ i }}</a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status_filter }}">Next</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

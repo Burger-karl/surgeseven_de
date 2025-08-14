@@ -2,6 +2,8 @@ from django.db import models
 from django.utils import timezone
 from users.models import User
 from django.core.exceptions import ValidationError
+from cloudinary.models import CloudinaryField
+import cloudinary
 
 
 class Truck(models.Model):
@@ -49,11 +51,24 @@ class Truck(models.Model):
     def is_activation_paid(self):
         return self.activated and self.activation_payment and self.activation_payment.verified
 
+    def delete(self, *args, **kwargs):
+        # Delete all associated images from Cloudinary first
+        for image in self.images.all():
+            try:
+                # Delete from Cloudinary
+                cloudinary.uploader.destroy(image.image.public_id)
+            except Exception as e:
+                # Log error but continue deletion
+                print(f"Error deleting image {image.image.public_id}: {str(e)}")
+        
+        # Then delete the truck instance
+        super().delete(*args, **kwargs)
+
 
 
 class TruckImage(models.Model):
     truck = models.ForeignKey(Truck, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to='trucks/', default='service-44.jpg')
+    image = CloudinaryField('image', folder='surgeseven/trucks/')
     order = models.PositiveIntegerField(default=0)
     
     class Meta:
