@@ -33,6 +33,19 @@
   <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
 
+  <!-- Add webpush context -->
+    {{ webpush.extra }}
+    
+    <!-- Add push notification script -->
+    <script src="{% static 'js/push.js' %}"></script>
+    
+    <!-- Add service worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}");
+        }
+    </script>
+
   
 </head>
 

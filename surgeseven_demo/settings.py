@@ -16,6 +16,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 from datetime import timedelta
+import redis
+from urllib.parse import urlparse
+
 
 load_dotenv()
 
@@ -67,6 +70,7 @@ INSTALLED_APPS = [
     'storages',
     'cloudinary',
     'cloudinary_storage',
+    'webpush',
 ]
 
 REST_FRAMEWORK = {
@@ -103,6 +107,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notifications',
+                'webpush.context_processors.webpush',
             ],
         },
     },
@@ -288,20 +293,63 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/' 
 
 
-# S3 Configuration
-# AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")      # Replace with your IAM user access key
-# AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")  # Replace with your IAM user secret key
-# AWS_STORAGE_BUCKET_NAME = 'surgeseven'
-# AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")  # e.g., 'us-east-1'
-# AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-# AWS_S3_OBJECT_PARAMETERS = {
-#     'CacheControl': 'max-age=86400',
+import os
+from urllib.parse import quote_plus
+
+# # Get Redis connection details
+# REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+# REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+# REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
+# REDIS_DB = os.environ.get('REDIS_DB', '0')
+
+# # URL encode password
+# safe_password = quote_plus(REDIS_PASSWORD)
+
+# # Build Redis URL
+# REDIS_URL = f"rediss://default:{safe_password}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
+# # Configure cache
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": REDIS_URL,
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             "SOCKET_CONNECT_TIMEOUT": 5,
+#             "SOCKET_TIMEOUT": 5,
+#             "IGNORE_EXCEPTIONS": True,
+#             "SSL": True,
+#             "SSL_CERT_REQS": None,  # Don't require certificate validation
+#         },
+#         "KEY_PREFIX": "surgeseven"
+#     }
 # }
 
-# Static files (if you want to serve static files from S3)
-# STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# # Optional: Use Redis for sessions
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
 
-# Media files configuration
-# MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# # Optional: Use Redis for Celery
+# CELERY_BROKER_URL = REDIS_URL
+# CELERY_RESULT_BACKEND = REDIS_URL
+
+
+import os
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"redis://:{os.getenv('REDIS_PASSWORD')}@{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}/{os.getenv('REDIS_DB')}",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": "adminhr@surgesevenltd.com"
+}
+
+BASE_URL = "https://surgesevenltd.com" 

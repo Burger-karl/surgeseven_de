@@ -85,11 +85,38 @@ class ForgotPasswordForm(forms.Form):
     )
 
 
+# class ResetPasswordForm(forms.Form):
+#     token = forms.CharField(
+#         max_length=50,
+#         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the Token'})
+#     )
+#     new_password = forms.CharField(
+#         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your new password'})
+#     )
+#     confirm_password = forms.CharField(
+#         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'})
+#     )
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         new_password = cleaned_data.get("new_password")
+#         confirm_password = cleaned_data.get("confirm_password")
+
+#         if new_password != confirm_password:
+#             raise forms.ValidationError("Passwords do not match.")
+#         return cleaned_data
+    
+#     def clean_new_password(self):
+#         password = self.cleaned_data.get('new_password')
+#         try:
+#             validate_password(password)
+#         except ValidationError as e:
+#             raise forms.ValidationError(e.messages)
+#         return password
+
+
+# users/forms.py
 class ResetPasswordForm(forms.Form):
-    token = forms.CharField(
-        max_length=50,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter the Token'})
-    )
     new_password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your new password'})
     )
@@ -113,7 +140,7 @@ class ResetPasswordForm(forms.Form):
         except ValidationError as e:
             raise forms.ValidationError(e.messages)
         return password
-
+    
 
 class ProfileForm(forms.ModelForm):
     profile_image = forms.ImageField(

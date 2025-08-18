@@ -161,3 +161,70 @@ def handle_truck_notifications(sender, instance, created, **kwargs):
             message="Your truck status has been updated to available after inspection.",
             notification_type="truck-available",
         )
+
+
+
+# notifications/signals.py
+import json
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.conf import settings
+from .models import Notification, PushSubscription
+from pywebpush import webpush, WebPushException
+import logging
+
+logger = logging.getLogger(__name__)
+
+@receiver(post_save, sender=Notification)
+def send_push_notification(sender, instance, created, **kwargs):
+    if not created or instance.push_sent:
+        return
+    
+    # Get all push subscriptions for the user
+    subscriptions = PushSubscription.objects.filter(user=instance.user)
+    
+    # Determine base URL
+    base_url = getattr(settings, 'BASE_URL', None)
+    if not base_url:
+        # Fallback to first allowed host with https
+        if settings.ALLOWED_HOSTS:
+            host = settings.ALLOWED_HOSTS[0]
+            base_url = f"https://{host}"
+        else:
+            logger.error("BASE_URL not set and no ALLOWED_HOSTS defined")
+            return
+    
+    # Build notification URL
+    notification_url = f"{base_url}/notifications/{instance.id}/"
+    
+    for subscription in subscriptions:
+        payload = {
+            "title": "Surgeseven Notification",
+            "body": instance.message,
+            "icon": f"{settings.STATIC_URL}assets/img/surge-seven-2.png",
+            "badge": f"{settings.STATIC_URL}assets/img/surge-seven-3.png",
+            "url": notification_url
+        }
+        
+        try:
+            webpush(
+                subscription_info={
+                    "endpoint": subscription.endpoint,
+                    "keys": {
+                        "auth": subscription.auth,
+                        "p256dh": subscription.p256dh
+                    }
+                },
+                data=json.dumps(payload),
+                vapid_private_key=settings.WEBPUSH_SETTINGS["VAPID_PRIVATE_KEY"],
+                vapid_claims={
+                    "sub": f"mailto:{settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']}"
+                }
+            )
+            instance.push_sent = True
+            instance.save()
+        except WebPushException as e:
+            logger.error(f"WebPush failed for user {instance.user.id}: {e}")
+            # Remove invalid subscriptions
+            if "410" in str(e) or "404" in str(e):  # Subscription expired or not found
+                subscription.delete()            

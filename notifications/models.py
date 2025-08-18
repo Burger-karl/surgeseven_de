@@ -23,9 +23,21 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     read = models.BooleanField(default=False)
     notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES, default='booking-created')
+    push_sent = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"Notification for {self.user.username} - {self.notification_type}"
+    
+
+class PushSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    endpoint = models.URLField(max_length=500)
+    auth = models.CharField(max_length=100)
+    p256dh = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"PushSubscription for {self.user.email}"

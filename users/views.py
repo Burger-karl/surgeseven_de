@@ -317,6 +317,77 @@ class LogoutView(View):
         return redirect('login')
 
 
+# class ForgotPasswordView(View):
+#     def get(self, request, *args, **kwargs):
+#         form = ForgotPasswordForm()
+#         return render(request, 'users/forgot_password.html', {'form': form})
+
+#     def post(self, request, *args, **kwargs):
+#         form = ForgotPasswordForm(request.POST)
+#         if form.is_valid():
+#             email = form.cleaned_data.get('email')
+#             try:
+#                 user = User.objects.get(email=email)
+#             except User.DoesNotExist:
+#                 messages.error(request, "No user found with this email.")
+#                 return redirect('forgot-password')
+
+#             token = get_random_string(length=20)
+#             expiry_date = timezone.now() + timedelta(hours=1)  # Token valid for 1 hour
+
+#             PasswordResetToken.objects.create(user=user, token=token, expiry_date=expiry_date)
+
+#             send_mail(
+#                 'Password Reset Request',
+#                 f'Use this token to reset your password: {token}. The token expires in 1 hour.',
+#                 'from@example.com',
+#                 [email],
+#                 fail_silently=False,
+#             )
+
+#             messages.success(request, "Password reset token sent.")
+#             return redirect('reset-password')
+
+#         return render(request, 'users/forgot_password.html', {'form': form})
+
+
+# class ResetPasswordView(View):
+#     def get(self, request, *args, **kwargs):
+#         form = ResetPasswordForm()
+#         return render(request, 'users/reset_password.html', {'form': form})
+
+#     def post(self, request, *args, **kwargs):
+#         form = ResetPasswordForm(request.POST)
+#         if form.is_valid():
+#             token = form.cleaned_data.get('token')
+#             new_password = form.cleaned_data.get('new_password')
+
+#             try:
+#                 reset_token = PasswordResetToken.objects.get(token=token)
+#             except PasswordResetToken.DoesNotExist:
+#                 messages.error(request, "Invalid or non-existent token.")
+#                 return redirect('reset-password')
+
+#             if reset_token.expiry_date < timezone.now():
+#                 messages.error(request, "Token has expired. Request a new one.")
+#                 return redirect('reset-password')
+
+#             user = reset_token.user
+#             user.set_password(new_password)
+#             user.save()
+
+#             reset_token.delete()
+#             messages.success(request, "Password reset successful.")
+#             return redirect('login')
+
+#         return render(request, 'users/reset_password.html', {'form': form})
+
+
+# users/views.py
+from django.utils import timezone
+from datetime import timedelta
+from django.urls import reverse
+
 class ForgotPasswordView(View):
     def get(self, request, *args, **kwargs):
         form = ForgotPasswordForm()
@@ -329,59 +400,79 @@ class ForgotPasswordView(View):
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
-                messages.error(request, "No user found with this email.")
+                # Don't reveal if email exists for security
+                messages.success(request, "If your email exists in our system, you'll receive a password reset link.")
                 return redirect('forgot-password')
-
-            token = get_random_string(length=20)
-            expiry_date = timezone.now() + timedelta(hours=1)  # Token valid for 1 hour
-
-            PasswordResetToken.objects.create(user=user, token=token, expiry_date=expiry_date)
-
+            
+            # Delete any existing tokens for this user
+            PasswordResetToken.objects.filter(user=user).delete()
+            
+            # Create new token
+            token = PasswordResetToken.objects.create(user=user)
+            
+            # Send password reset email
+            reset_link = request.build_absolute_uri(
+                reverse('reset-password', kwargs={'token': token.token})
+            )
+            
             send_mail(
                 'Password Reset Request',
-                f'Use this token to reset your password: {token}. The token expires in 1 hour.',
-                'from@example.com',
+                f'Click this link to reset your password: {reset_link}\n\n'
+                f'The link will expire in 1 hour.',
+                settings.DEFAULT_FROM_EMAIL,
                 [email],
                 fail_silently=False,
             )
 
-            messages.success(request, "Password reset token sent.")
-            return redirect('reset-password')
+            messages.success(request, "Password reset link sent to your email.")
+            return redirect('login')
 
         return render(request, 'users/forgot_password.html', {'form': form})
+    
 
 
+# users/views.py
 class ResetPasswordView(View):
-    def get(self, request, *args, **kwargs):
+    def get(self, request, token, *args, **kwargs):
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token)
+        except PasswordResetToken.DoesNotExist:
+            messages.error(request, "Invalid or expired password reset link.")
+            return redirect('forgot-password')
+            
+        if reset_token.is_expired():
+            reset_token.delete()
+            messages.error(request, "Password reset link has expired.")
+            return redirect('forgot-password')
+            
         form = ResetPasswordForm()
-        return render(request, 'users/reset_password.html', {'form': form})
+        return render(request, 'users/reset_password.html', {'form': form, 'token': token})
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, token, *args, **kwargs):
         form = ResetPasswordForm(request.POST)
         if form.is_valid():
-            token = form.cleaned_data.get('token')
-            new_password = form.cleaned_data.get('new_password')
-
             try:
                 reset_token = PasswordResetToken.objects.get(token=token)
             except PasswordResetToken.DoesNotExist:
-                messages.error(request, "Invalid or non-existent token.")
-                return redirect('reset-password')
-
-            if reset_token.expiry_date < timezone.now():
-                messages.error(request, "Token has expired. Request a new one.")
-                return redirect('reset-password')
-
+                messages.error(request, "Invalid or expired password reset link.")
+                return redirect('forgot-password')
+                
+            if reset_token.is_expired():
+                reset_token.delete()
+                messages.error(request, "Password reset link has expired.")
+                return redirect('forgot-password')
+                
+            new_password = form.cleaned_data.get('new_password')
             user = reset_token.user
             user.set_password(new_password)
             user.save()
-
+            
             reset_token.delete()
-            messages.success(request, "Password reset successful.")
+            messages.success(request, "Password reset successful. You can now login with your new password.")
             return redirect('login')
-
-        return render(request, 'users/reset_password.html', {'form': form})
-
+            
+        return render(request, 'users/reset_password.html', {'form': form, 'token': token})
+    
 
 class ProfileCreateView(View):
     def get(self, request, *args, **kwargs):
