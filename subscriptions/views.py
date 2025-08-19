@@ -73,25 +73,94 @@ class SubscribeView(View):
             return render(request, 'subscriptions/subscribe.html', {'plan': plan, 'error': 'Error initializing payment. Please try again.'})
 
 
+# class PaymentCallbackView(View):
+#     def get(self, request, subscription_id):
+#         subscription = get_object_or_404(UserSubscription, id=subscription_id)
+#         reference = request.GET.get('reference')
+#         response = paystack_client.verify_transaction(reference)
+#         if response['status']:
+#             subscription.subscription_status = 'active'
+#             subscription.save()
+#             Payment.objects.create(
+#                 user=request.user,
+#                 subscription=subscription,
+#                 amount=subscription.plan.price,
+#                 reference=reference
+#             )
+#             return redirect(reverse('user-subscriptions') + '?message=Subscription successful')
+#         else:
+#             subscription.delete()
+#             return redirect(reverse('subscribe', args=[subscription.plan.id]) + '?error=Payment failed. Please try again.')
+
+
+from notifications.models import PushSubscription  # Add this import at the top
+from pywebpush import webpush, WebPushException
+import json
+from django.conf import settings  # Make sure to import settings
+
 class PaymentCallbackView(View):
     def get(self, request, subscription_id):
         subscription = get_object_or_404(UserSubscription, id=subscription_id)
         reference = request.GET.get('reference')
         response = paystack_client.verify_transaction(reference)
+        
         if response['status']:
+            # Activate the subscription
             subscription.subscription_status = 'active'
             subscription.save()
+            
+            # Create payment record
             Payment.objects.create(
                 user=request.user,
                 subscription=subscription,
                 amount=subscription.plan.price,
                 reference=reference
             )
+            
+            # Send push notification - ADDED SECTION
+            try:
+                # Get user's push subscription if exists
+                push_sub = PushSubscription.objects.filter(user=request.user).first()
+                
+                if push_sub:
+                    # Prepare subscription info for webpush
+                    subscription_info = {
+                        "endpoint": push_sub.endpoint,
+                        "keys": {
+                            "auth": push_sub.auth,
+                            "p256dh": push_sub.p256dh
+                        }
+                    }
+                    
+                    # Create notification payload
+                    payload = {
+                        "title": "Payment Successful!",
+                        "body": f"Your {subscription.plan.name} subscription is now active!",
+                        "icon": "/static/assets/img/surge-seven-3.png",  # Optional
+                        "url": "/user-subscriptions/"  # Optional
+                    }
+                    
+                    # Send the push notification
+                    webpush(
+                        subscription_info=subscription_info,
+                        data=json.dumps(payload),
+                        vapid_private_key=settings.VAPID_PRIVATE_KEY,
+                        vapid_claims={
+                            "sub": "mailto:adminhr@surgesevenltd.com",  # Your admin email
+                            "aud": "https://fcm.googleapis.com"  # Firebase audience
+                        }
+                    )
+            except WebPushException as e:
+                # Log error but don't break the flow
+                print(f"WebPush failed: {str(e)}")
+            except Exception as e:
+                # Catch any other exceptions
+                print(f"Error sending notification: {str(e)}")
+
             return redirect(reverse('user-subscriptions') + '?message=Subscription successful')
         else:
             subscription.delete()
             return redirect(reverse('subscribe', args=[subscription.plan.id]) + '?error=Payment failed. Please try again.')
-
 
 
 @login_required
@@ -162,6 +231,27 @@ class CancelSubscriptionView(LoginRequiredMixin, View):
         
         return redirect(reverse('user-subscriptions') + '?message=Subscription cancelled and returned to free plan')
 
+
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def save_push_subscription(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            PushSubscription.objects.create(
+                user=request.user,
+                endpoint=data['endpoint'],
+                auth=data['keys']['auth'],
+                p256dh=data['keys']['p256dh']
+            )
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)})
+    return JsonResponse({"status": "error"}, status=400)
 
 
 # class RenewSubscriptionView(LoginRequiredMixin, View):

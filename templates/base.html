@@ -44,7 +44,36 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}");
         }
+
+        // After getting push subscription
+        async function saveSubscription(subscription) {
+        const response = await fetch('/save-subscription/', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(subscription),
+        });
+        return response.json();
+        }
+
+        // Usage example:
+        Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+            navigator.serviceWorker.ready.then(registration => {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: "YOUR_VAPID_PUBLIC_KEY"
+            }).then(subscription => {
+                saveSubscription(subscription);
+            });
+            });
+        }
+        });
     </script>
+
+    
 
   
 </head>

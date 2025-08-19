@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import SubscriptionPlanListView, UserSubscriptionsView, SubscribeView, PaymentCallbackView, CancelSubscriptionView
+from .views import ( 
+    SubscriptionPlanListView, UserSubscriptionsView, SubscribeView, 
+    PaymentCallbackView, CancelSubscriptionView, save_push_subscription,
+)
 
 urlpatterns = [
     path('subscription-plans/', SubscriptionPlanListView.as_view(), name='subscription-plans'),
@@ -8,5 +11,6 @@ urlpatterns = [
     path('payment-callback/<int:subscription_id>/', PaymentCallbackView.as_view(), name='payment-callback'),
 
     path('cancel-subscription/', CancelSubscriptionView.as_view(), name='cancel-subscription'),
+    path('save-subscription/', save_push_subscription, name='save-subscription'),
 ]
 

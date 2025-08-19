@@ -1,6 +1,9 @@
 from django.db import models
 from users.models import User
 from booking.models import Booking, Truck
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Create your models here.
 
@@ -32,8 +35,9 @@ class Notification(models.Model):
         return f"Notification for {self.user.username} - {self.notification_type}"
     
 
+
 class PushSubscription(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='push_subscriptions')
     endpoint = models.URLField(max_length=500)
     auth = models.CharField(max_length=100)
     p256dh = models.CharField(max_length=100)
