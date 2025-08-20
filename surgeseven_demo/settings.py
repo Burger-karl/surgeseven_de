@@ -71,7 +71,6 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'webpush',
-    'channels',
 ]
 
 REST_FRAMEWORK = {
