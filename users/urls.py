@@ -7,6 +7,7 @@ from .views import (RegisterView, VerifyEmailView,
     admin_create_user, admin_delete_user,
     AdminUserListView, AdminUserDetailView,
 
+
 )
 
 
@@ -22,6 +23,8 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/update/', ProfileUpdateView.as_view(), name='profile-update'),
     path('referral/', ReferralView.as_view(), name='referral'),
+
+    
     
 
     # FOR ADMIN USER

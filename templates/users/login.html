@@ -7,25 +7,87 @@ Login to your <span class="text-warning">SurgeSeven</span> Account
 {% endblock header %}
     
 {% block content %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordField = document.getElementById('login-password');
+    const passwordToggle = document.getElementById('password-toggle');
+    const passwordIcon = document.getElementById('password-icon');
+    const loginForm = document.getElementById('login-form');
+    
+    // Password visibility toggle
+    passwordToggle.addEventListener('click', function() {
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            passwordIcon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+        } else {
+            passwordField.type = 'password';
+            passwordIcon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+        }
+    });
+    
+    // Auto-focus on email field
+    const emailField = document.getElementById('login-email');
+    if (emailField && !emailField.value) {
+        emailField.focus();
+    } else if (passwordField) {
+        passwordField.focus();
+    }
+    
+    // Auto-save credentials if remember me is checked
+    const rememberMe = document.getElementById('remember-me');
+    if (rememberMe) {
+        rememberMe.addEventListener('change', function() {
+            if (this.checked) {
+                // Browser will handle auto-complete based on autocomplete attributes
+                console.log('Remember me enabled');
+            }
+        });
+    }
+    
+    // Check if browser has saved credentials
+    setTimeout(function() {
+        if (passwordField.value) {
+            // Auto-fill detected, you could add visual indication if needed
+        }
+    }, 100);
+});
+</script>
+
+
+
     <div class="p-4 p-md-5 border rounded-3 bg-dark">
         <div>
             <div>
-                <form action="" method="POST" novalidate>
-                    <h3>Login</h3>
+                <form action="" method="POST" novalidate id="login-form">
+                
                     
                     {% csrf_token %}
-                    {{ form.email.label_tag }} {{ form.email }} <small class="text-danger">{{ form.email.errors|striptags }}</small><br>
                     
-                    <!-- Modified password field with toggle -->
-                    <div class="input-group mb-3">
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        {{ form.email.label_tag }} 
+                        {{ form.email }} 
+                        <small class="text-danger">{{ form.email.errors|striptags }}</small>
+                    </div>
+                    
+                    <!-- Password Field with Toggle -->
+                    <div class="mb-3">
                         {{ form.password.label_tag }}
-                        <div class="input-group" id="password">
+                        <div class="input-group">
                             {{ form.password }}
-                            <button class="btn btn-outline-secondary toggle-password" onclick="togglePassword()" type="button">
-                                <i class="bi bi-eye-slash"></i>
+                            <button class="btn btn-outline-secondary toggle-password" type="button" id="password-toggle">
+                                <i class="bi bi-eye-slash-fill" id="password-icon"></i>
                             </button>
                         </div>
                         <small class="text-danger">{{ form.password.errors|striptags }}</small>
+                    </div>
+                    
+                    <!-- Remember Me Checkbox -->
+                    <div class="mb-3 form-check">
+                        {{ form.remember_me }}
+                        <label class="form-check-label text-white" for="{{ form.remember_me.id_for_label }}">
+                            Remember me
+                        </label>
                     </div>
                     
                     <small><a href="{% url 'forgot-password' %}">Forgot Password ?</a></small>
@@ -58,18 +120,5 @@ Login to your <span class="text-warning">SurgeSeven</span> Account
 <!-- Add Bootstrap Icons CSS if not already included -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
 
-<script>
-function togglePassword() {
-    const passwordField = document.getElementById('password');
-    const icon = document.querySelector('.toggle-password i');
-    
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        icon.classList.replace('bi-eye', 'bi-eye-slash');
-    } else {
-        passwordField.type = 'password';
-        icon.classList.replace('bi-eye-slash', 'bi-eye');
-    }
-}
-</script>
+
 {% endblock extra_js %}

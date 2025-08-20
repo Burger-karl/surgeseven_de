@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'webpush',
+    'channels',
 ]
 
 REST_FRAMEWORK = {
@@ -293,59 +294,6 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/' 
 
 
-import os
-from urllib.parse import quote_plus
-
-# # Get Redis connection details
-# REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
-# REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
-# REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', '')
-# REDIS_DB = os.environ.get('REDIS_DB', '0')
-
-# # URL encode password
-# safe_password = quote_plus(REDIS_PASSWORD)
-
-# # Build Redis URL
-# REDIS_URL = f"rediss://default:{safe_password}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
-
-# # Configure cache
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": REDIS_URL,
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#             "SOCKET_CONNECT_TIMEOUT": 5,
-#             "SOCKET_TIMEOUT": 5,
-#             "IGNORE_EXCEPTIONS": True,
-#             "SSL": True,
-#             "SSL_CERT_REQS": None,  # Don't require certificate validation
-#         },
-#         "KEY_PREFIX": "surgeseven"
-#     }
-# }
-
-# # Optional: Use Redis for sessions
-# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-# SESSION_CACHE_ALIAS = "default"
-
-# # Optional: Use Redis for Celery
-# CELERY_BROKER_URL = REDIS_URL
-# CELERY_RESULT_BACKEND = REDIS_URL
-
-
-# import os
-
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": f"redis://:{os.getenv('REDIS_PASSWORD')}@{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT')}/{os.getenv('REDIS_DB')}",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         }
-#     }
-# }
-
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
     "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
@@ -353,3 +301,4 @@ WEBPUSH_SETTINGS = {
 }
 
 BASE_URL = "https://surgesevenltd.com" 
+

@@ -1,10 +1,8 @@
-# notification_worker.py
 import os
 import time
 import django
 from django.core.management import call_command
 
-# Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'surgeseven_demo.settings')
 django.setup()
 

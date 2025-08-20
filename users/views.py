@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.views import View
 from django.views.generic import FormView, DetailView, ListView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm, AdminUserCreationForm
 from .models import User, OTP, PasswordResetToken, Profile, Referral
 from subscriptions.models import SubscriptionPlan, UserSubscription
@@ -44,7 +44,6 @@ def is_admin(user):
 
 
 OTP_EXPIRATION_MINUTES = 10
-
 
 class RegisterView(View):
     form_class = RegisterForm
@@ -210,16 +209,29 @@ class ResendOTPView(View):
             messages.error(request, "Failed to send OTP. Please try again.")
             return redirect('resend-otp')
         
-    
 
 class LoginView(FormView):
     form_class = LoginForm
     template_name = 'users/login.html'
     success_url = reverse_lazy('client_home')  # Default fallback URL
 
+    def get(self, request, *args, **kwargs):
+        # Check for saved credentials if user wants to be remembered
+        email = request.COOKIES.get('remembered_email', '')
+        remember_me = bool(email)
+        
+        form = self.form_class(initial={
+            'email': email,
+            'remember_me': remember_me
+        })
+        
+        return self.render_to_response(self.get_context_data(form=form))
+
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
         password = form.cleaned_data.get('password')
+        remember_me = form.cleaned_data.get('remember_me', False)
+        
         user = authenticate(email=email, password=password)
 
         if user:
@@ -228,6 +240,22 @@ class LoginView(FormView):
                 return redirect('login')
 
             login(self.request, user)
+            
+            # Set session expiry based on remember_me
+            if remember_me:
+                # Set session to expire in 30 days
+                self.request.session.set_expiry(60 * 60 * 24 * 30)
+                
+                # Set cookie to remember email
+                response = redirect(self.get_success_url())
+                response.set_cookie('remembered_email', email, max_age=60 * 60 * 24 * 30)
+            else:
+                # Browser-length session
+                self.request.session.set_expiry(0)
+                # Delete any existing remember cookie
+                response = redirect(self.get_success_url())
+                response.delete_cookie('remembered_email')
+
             messages.success(self.request, "Logged in successfully.")
 
             # Redirect based on user type
@@ -241,74 +269,7 @@ class LoginView(FormView):
 
         messages.error(self.request, "Invalid credentials.")
         return redirect('login')
-
-
-
-# class LoginView(FormView):
-#     form_class = LoginForm
-#     template_name = 'users/login.html'
-#     success_url = reverse_lazy('client_home')
     
-#     # Rate limiting decorator - blocks after 5 attempts/hour per email
-#     @method_decorator(ratelimit(key='post:email', rate='5/h', method='POST', block=True))
-#     def post(self, request, *args, **kwargs):
-#         return super().post(request, *args, **kwargs)
-
-#     def form_valid(self, form):
-#         email = form.cleaned_data.get('email')
-#         password = form.cleaned_data.get('password')
-        
-#         # Additional manual rate limiting as defense-in-depth
-#         cache_key = f'login_attempts_{email}'
-#         attempts = cache.get(cache_key, 0)
-        
-#         if attempts >= 5:
-#             messages.error(
-#                 self.request,
-#                 "Too many failed attempts. Please try again in 1 hour or reset your password."
-#             )
-#             return redirect('login')
-        
-#         user = authenticate(email=email, password=password)
-
-#         if user:
-#             # Reset attempt counter on successful auth
-#             cache.delete(cache_key)
-            
-#             if not user.is_verified:
-#                 messages.error(
-#                     self.request,
-#                     "Account not verified. Please verify your email.",
-#                     extra_tags='security'
-#                 )
-#                 # Track unverified login attempts
-#                 logger.warning(f"Unverified login attempt: {email}")
-#                 return redirect('login')
-
-#             login(self.request, user)
-#             logger.info(f"Successful login: {email}")
-#             messages.success(self.request, "Logged in successfully.")
-
-#             # Redirect based on user type
-#             if user.is_superuser or user.is_staff:
-#                 return redirect('admin_home')
-#             elif user.user_type == 'truck_owner':
-#                 return redirect('truck_owner_home')
-#             return redirect('client_home')
-
-#         # Authentication failed - increment counter
-#         attempts = cache.get(cache_key, 0) + 1
-#         cache.set(cache_key, attempts, 3600)  # 1 hour expiration
-        
-#         logger.warning(f"Failed login attempt {attempts}/5 for: {email}")
-#         messages.error(
-#             self.request,
-#             "Invalid credentials.",
-#             extra_tags='security'
-#         )
-#         return redirect('login')
-
-
 
 class LogoutView(View):
     def get(self, request):
@@ -316,77 +277,6 @@ class LogoutView(View):
         messages.success(request, "Logged out successfully.")
         return redirect('login')
 
-
-# class ForgotPasswordView(View):
-#     def get(self, request, *args, **kwargs):
-#         form = ForgotPasswordForm()
-#         return render(request, 'users/forgot_password.html', {'form': form})
-
-#     def post(self, request, *args, **kwargs):
-#         form = ForgotPasswordForm(request.POST)
-#         if form.is_valid():
-#             email = form.cleaned_data.get('email')
-#             try:
-#                 user = User.objects.get(email=email)
-#             except User.DoesNotExist:
-#                 messages.error(request, "No user found with this email.")
-#                 return redirect('forgot-password')
-
-#             token = get_random_string(length=20)
-#             expiry_date = timezone.now() + timedelta(hours=1)  # Token valid for 1 hour
-
-#             PasswordResetToken.objects.create(user=user, token=token, expiry_date=expiry_date)
-
-#             send_mail(
-#                 'Password Reset Request',
-#                 f'Use this token to reset your password: {token}. The token expires in 1 hour.',
-#                 'from@example.com',
-#                 [email],
-#                 fail_silently=False,
-#             )
-
-#             messages.success(request, "Password reset token sent.")
-#             return redirect('reset-password')
-
-#         return render(request, 'users/forgot_password.html', {'form': form})
-
-
-# class ResetPasswordView(View):
-#     def get(self, request, *args, **kwargs):
-#         form = ResetPasswordForm()
-#         return render(request, 'users/reset_password.html', {'form': form})
-
-#     def post(self, request, *args, **kwargs):
-#         form = ResetPasswordForm(request.POST)
-#         if form.is_valid():
-#             token = form.cleaned_data.get('token')
-#             new_password = form.cleaned_data.get('new_password')
-
-#             try:
-#                 reset_token = PasswordResetToken.objects.get(token=token)
-#             except PasswordResetToken.DoesNotExist:
-#                 messages.error(request, "Invalid or non-existent token.")
-#                 return redirect('reset-password')
-
-#             if reset_token.expiry_date < timezone.now():
-#                 messages.error(request, "Token has expired. Request a new one.")
-#                 return redirect('reset-password')
-
-#             user = reset_token.user
-#             user.set_password(new_password)
-#             user.save()
-
-#             reset_token.delete()
-#             messages.success(request, "Password reset successful.")
-#             return redirect('login')
-
-#         return render(request, 'users/reset_password.html', {'form': form})
-
-
-# users/views.py
-from django.utils import timezone
-from datetime import timedelta
-from django.urls import reverse
 
 class ForgotPasswordView(View):
     def get(self, request, *args, **kwargs):
@@ -430,8 +320,6 @@ class ForgotPasswordView(View):
         return render(request, 'users/forgot_password.html', {'form': form})
     
 
-
-# users/views.py
 class ResetPasswordView(View):
     def get(self, request, token, *args, **kwargs):
         try:

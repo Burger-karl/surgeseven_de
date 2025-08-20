@@ -62,6 +62,7 @@ pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
 PyJWT==2.10.1
+pyOpenSSL==25.1.0
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 python-decouple==3.8
