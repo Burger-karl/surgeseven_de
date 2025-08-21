@@ -37,12 +37,12 @@
     {{ webpush.extra }}
     
     <!-- Add push notification script -->
-    <script src="{% static 'js/push.js' %}"></script>
+    <script src="{% static 'assets/js/push.js' %}"></script>
     
     <!-- Add service worker registration -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}");
+            navigator.serviceWorker.register("{% static 'assets/js/serviceworker.js' %}");
         }
 
         // After getting push subscription

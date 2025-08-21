@@ -50,6 +50,7 @@ urlpatterns = [
     path('notify/', include('notifications.urls')),
     path('tracker/', include('tracker.urls')),
     path('webpush/', include('webpush.urls')),
+    path('qr-codes/', include('qr_generator.urls')),
 
     # Root redirect - must be last in this section
     # path('', RedirectView.as_view(url='guest/home/', permanent=False)),

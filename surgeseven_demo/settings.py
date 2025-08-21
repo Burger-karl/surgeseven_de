@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'dashboard',
     'notifications',
     'tracker',
+    'qr_generator',
 
     'rest_framework',
     'rest_framework_simplejwt',
@@ -301,3 +302,24 @@ WEBPUSH_SETTINGS = {
 
 BASE_URL = "https://surgesevenltd.com" 
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
+
+
+BARCODE_DEFAULT_REDIRECT = 'https://surgesevenltd.com'
+BARCODE_IMAGE_FORMAT = 'PNG' 
+
+
+# QR Code settings
+QR_CODE_DEFAULT_REDIRECT = 'https://surgesevenltd.com'
+QR_CODE_IMAGE_FORMAT = 'PNG'
+QR_CODE_VERSION = 1
+QR_CODE_BOX_SIZE = 10
+QR_CODE_BORDER = 4
+QR_CODE_FILL_COLOR = 'black'
+QR_CODE_BACK_COLOR = 'white'

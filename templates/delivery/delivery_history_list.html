@@ -6,10 +6,9 @@
 <section class="breadcrumbs">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-            <h5>Delivery History of <strong class="text-warning">{{ request.user.username }}</strong></h5>
             <ol>
                 <li><a href="{% url 'client_home' %}">Home</a></li>
-                
+                <li>Delivery History of <strong class="text-warning">{{ request.user.username }}</strong></li>
             </ol>
         </div>
     </div>
