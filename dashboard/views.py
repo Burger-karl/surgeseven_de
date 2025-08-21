@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.utils.decorators import method_decorator
 from users.models import User
-from subscriptions.models import UserSubscription
+from subscriptions.models import UserSubscription, SubscriptionPlan
 from booking.models import Booking, Truck, TruckImage
 from delivery.models import DeliverySchedule, DeliveryHistory
 from payment.models import Payment
@@ -41,7 +41,6 @@ class ClientHomeView(ListView):
         context['referral_link'] = user.generate_referral_link()
         context['referral_code'] = user.referral_code
         return context
-
 
 
 @method_decorator(login_required, name='dispatch')

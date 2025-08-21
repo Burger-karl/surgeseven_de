@@ -111,6 +111,185 @@
 
 {% block main-content %}
 
+<style>
+    /* Business Section Styles */
+    .business-section {
+        position: relative;
+        padding: 80px 0;
+        overflow: hidden;
+    }
+    
+    /* Background with Blur Effect */
+    .background-blur {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{% static "assets/img/service-33.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        filter: blur(8px);
+        z-index: -2;
+    }
+    
+    .blur-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* background: rgba(255, 255, 255, 0.85); */
+        z-index: -1;
+    }
+    
+    /* Business Cards Container */
+    .business-cards-container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Business Cards Styles */
+    .business-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        height: 100%;
+        position: relative;
+    }
+    
+    .business-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-img-container {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+    
+    .card-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .business-card:hover .card-img {
+        transform: scale(1.05);
+    }
+    
+    .card-img-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.6));
+    }
+    
+    .card-body {
+        padding: 25px;
+        text-align: center;
+    }
+    
+    .card-icon {
+        margin-bottom: 15px;
+    }
+    
+    .card-icon i {
+        font-size: 2.5rem;
+        color: #ffc107;
+        background: rgba(255, 193, 7, 0.1);
+        width: 70px;
+        height: 70px;
+        line-height: 70px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .card-text {
+        color: #666;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    .btn-primary {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 10px 25px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    }
+    
+    .btn-primary:hover {
+        background-color: #e0a800;
+        border-color: #e0a800;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+    }
+    
+    /* Section Title Styling */
+    .section-title {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .section-title h2 {
+        color: #333;
+        font-weight: 700;
+    }
+    
+    .section-title p {
+        color: #666;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 992px) {
+        .card-img-container {
+            height: 200px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .business-section {
+            padding: 60px 0;
+        }
+        
+        .card-img-container {
+            height: 180px;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+        }
+        
+        .card-icon i {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+        }
+    }
+</style>
+
 
     <!-- ======= Trucks Section ======= -->
     <section id="testimonials" class="testimonials section-bg">
@@ -177,124 +356,83 @@
     <!-- End Section -->
 
 
-    <!-- ======= Menu Section ======= -->
-    <!-- <section id="menu" class="menu section-bg">
-        <div class="container" data-aos="fade-up">
-
-            <div class="section-title">
-                <h2>Trucks</h2>
-                <p>Book an availabe truck</p>
-            </div>
-
-            <div class="row" data-aos="fade-up" data-aos-delay="100">
-                <div class="col-lg-12 d-flex justify-content-center">
-                    <ul id="menu-flters">
-                        <li data-filter="*" class="filter-active">Trucks</li>
-                        <li data-filter=".filter-starters">Light</li>
-                        <li data-filter=".filter-salads">Medium</li>
-                        <li data-filter=".filter-specialty">Heavy</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="row menu-container" data-aos="fade-up" data-aos-delay="200">
-
-                <div class="col-lg-6 menu-item filter-starters">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589241/service-3_p5irvr.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">VW Truck</a><span>#15,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        LightWeight, 0kg - 1000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-specialty">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589263/service-44_awzwb4.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Benz</a><span>#30,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        HeavyWeight, 5001kg - 10000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-starters">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589314/carousel-2_olrgfk.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">MAN</a><span>#12,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        LightWeight, 0kg - 1000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-salads">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589332/service-1_rqcysa.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Boeing</a><span>#25,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        MediumWeight, 1001kg - 5000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-specialty">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589081/b4_mhh0ta.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Mercedes</a><span>#40,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        HeavyWeight, 5001kg - 10000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-starters">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589414/carousel-1_tfys3t.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Freight</a><span>#14500</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        LightWeight, 0kg - 1000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-salads">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589470/g2_mbrlf8.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Shipping</a><span>#19,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        MediumWeight, 1001kg - 5000kg
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-salads">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724589920/service-2_eksc6s.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Maritime</a><span>$22000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        MediumWeight, 1001kg - 5000kg                        
-                    </div>
-                </div>
-
-                <div class="col-lg-6 menu-item filter-specialty">
-                    <img src="https://res.cloudinary.com/dykhctgak/image/upload/v1724590009/service-4_ufjba7.jpg" class="menu-img" alt="">
-                    <div class="menu-content">
-                        <a href="#">Bludge</a><span>#50,000</span>
-                    </div>
-                    <div class="menu-ingredients">
-                        HeavyWeight, 5001kg - 10000kg
-                    </div>
-                </div>
-
-            </div>
-
+    <!-- ======= Instructions Section ======= -->
+    <!-- ======= Business Section ======= -->
+<section id="business" class="business-section">
+    <!-- Background Image with Blur Effect -->
+    <div class="background-blur">
+        <div class="blur-overlay"></div>
+    </div>
+    
+    <div class="container" data-aos="fade-up">
+        <div class="section-title">
+            <h2>Business</h2>
+            <p>easy booking and delivery</p>
         </div>
-    </section> -->
-    <!--====== End Menu Section ======-->
 
+        <div class="row business-cards-container">
+            <!-- Subscribe Card -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card business-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="card-img-container">
+                        <img src="{% static 'assets/img/service-11.jpg' %}" class="card-img" alt="Subscribe">
+                        <div class="card-img-overlay"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-content">
+                            <div class="card-icon">
+                                <i class="bi bi-credit-card"></i>
+                            </div>
+                            <h4 class="card-title">Subscribe</h4>
+                            <p class="card-text">Choose from our flexible subscription plans before making your booking</p>
+                            <a href="{% url 'subscription-plans' %}" class="btn btn-primary mt-3">View Plans</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking App Card -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card business-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="card-img-container">
+                        <img src="{% static 'assets/img/booking1.png' %}" class="card-img" alt="Booking App">
+                        <div class="card-img-overlay"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-content">
+                            <div class="card-icon">
+                                <i class="bi bi-truck"></i>
+                            </div>
+                            <h4 class="card-title">Booking App</h4>
+                            <p class="card-text">Choose and book any truck from our extensive fleet with just a few clicks</p>
+                            <a href="{% url 'available_trucks' %}" class="btn btn-primary mt-3">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Card -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card business-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="card-img-container">
+                        <img src="{% static 'assets/img/feature.jpg' %}" class="card-img" alt="Delivery">
+                        <div class="card-img-overlay"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-content">
+                            <div class="card-icon">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <h4 class="card-title">Delivery</h4>
+                            <p class="card-text">Track your goods in real-time as they're safely delivered to your destination</p>
+                            <a href="{% url 'active_deliveries' %}" class="btn btn-primary mt-3">Track Delivery</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 
     <!-- ======= Specials Section ======= -->
