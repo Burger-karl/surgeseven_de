@@ -1,90 +1,27 @@
-// // static/js/push.js
-// if ('serviceWorker' in navigator && 'PushManager' in window) {
-//     // Register service worker
-//     navigator.serviceWorker.register('/static/assets/js/serviceworker.js')
-//         .then(function(registration) {
-//             console.log('Service Worker registered');
-            
-//             // Request notification permission
-//             return registration.pushManager.getSubscription()
-//                 .then(function(subscription) {
-//                     if (subscription) {
-//                         return subscription;
-//                     }
-                    
-//                     const publicKey = "{{ vapid_public_key }}";
-//                     return registration.pushManager.subscribe({
-//                         userVisibleOnly: true,
-//                         applicationServerKey: urlBase64ToUint8Array(publicKey)
-//                     });
-//                 });
-//         })
-//         .then(function(subscription) {
-//             // Send subscription to server
-//             fetch('/notifications/push/subscribe/', {
-//                 method: 'POST',
-//                 headers: {
-//                     'Content-Type': 'application/json',
-//                     'X-CSRFToken': getCookie('csrftoken')
-//                 },
-//                 body: JSON.stringify(subscription)
-//             });
-//         })
-//         .catch(function(error) {
-//             console.error('Service Worker registration failed:', error);
-//         });
-// }
-
-// // Helper function to convert VAPID key
-// function urlBase64ToUint8Array(base64String) {
-//     const padding = '='.repeat((4 - base64String.length % 4) % 4);
-//     const base64 = (base64String + padding)
-//         .replace(/\-/g, '+')
-//         .replace(/_/g, '/');
-    
-//     const rawData = window.atob(base64);
-//     const outputArray = new Uint8Array(rawData.length);
-    
-//     for (let i = 0; i < rawData.length; ++i) {
-//         outputArray[i] = rawData.charCodeAt(i);
-//     }
-//     return outputArray;
-// }
-
-// // Helper function to get CSRF token
-// function getCookie(name) {
-//     let cookieValue = null;
-//     if (document.cookie && document.cookie !== '') {
-//         const cookies = document.cookie.split(';');
-//         for (let i = 0; i < cookies.length; i++) {
-//             const cookie = cookies[i].trim();
-//             if (cookie.substring(0, name.length + 1) === (name + '=')) {
-//                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-//                 break;
-//             }
-//         }
-//     }
-//     return cookieValue;
-// }
-
-
-
-
-
 // static/js/push.js
 document.addEventListener('DOMContentLoaded', function() {
     // Check if service workers and push are supported
     if ('serviceWorker' in navigator && 'PushManager' in window) {
         console.log('Service Worker and Push are supported');
         
-        // Get VAPID public key from data attribute
+        // Get VAPID public key from meta tag
         const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
-        const publicKey = vapidMeta ? vapidMeta.getAttribute('content') : '';
+        let publicKey = vapidMeta ? vapidMeta.getAttribute('content') : '';
+        
+        // If not found in meta tag, try from window variable (fallback)
+        if (!publicKey && window.VAPID_PUBLIC_KEY) {
+            publicKey = window.VAPID_PUBLIC_KEY;
+        }
+        
+        // Clean up the key (remove any whitespace or quotes)
+        publicKey = publicKey.trim().replace(/"/g, '');
         
         if (!publicKey) {
             console.error('VAPID public key is missing');
             return;
         }
+        
+        console.log('VAPID Public Key found:', publicKey);
         
         // Register service worker
         navigator.serviceWorker.register('/static/assets/js/serviceworker.js')
@@ -95,10 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 return Notification.requestPermission()
                     .then(function(permission) {
                         if (permission !== 'granted') {
-                            throw new Error('Permission not granted for notifications');
+                            console.log('Permission not granted for notifications');
+                            return null;
                         }
-                        
-                        // Check existing subscription
                         return registration.pushManager.getSubscription();
                     })
                     .then(function(subscription) {
@@ -116,10 +52,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
             })
             .then(function(subscription) {
-                console.log('User subscribed:', subscription);
+                if (!subscription) {
+                    console.log('No subscription (user denied permission)');
+                    return;
+                }
+                
+                console.log('Subscription data to send:', JSON.stringify(subscription));
                 
                 // Send subscription to server
-                return fetch('/notifications/push/subscribe/', {
+                return fetch('/notify/notifications/push/subscribe/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -129,14 +70,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             })
             .then(function(response) {
-                if (response.ok) {
+                if (response && response.ok) {
                     console.log('Subscription sent to server successfully');
-                } else {
-                    console.error('Failed to send subscription to server');
+                    return response.json();
+                } else if (response) {
+                    console.error('Failed to send subscription to server. Status:', response.status);
+                    return response.json().then(data => {
+                        console.error('Error details:', data);
+                        throw new Error('Server responded with error: ' + response.status);
+                    });
+                }
+            })
+            .then(function(data) {
+                if (data) {
+                    console.log('Server response:', data);
                 }
             })
             .catch(function(error) {
-                console.error('Service Worker registration failed:', error);
+                console.error('Error in push notification setup:', error);
             });
     } else {
         console.warn('Push messaging is not supported');

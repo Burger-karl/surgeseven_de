@@ -42,6 +42,9 @@ class PushSubscription(models.Model):
     auth = models.CharField(max_length=100)
     p256dh = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'endpoint')
     
     def __str__(self):
         return f"PushSubscription for {self.user.email}"

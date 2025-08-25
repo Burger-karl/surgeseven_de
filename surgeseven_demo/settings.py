@@ -108,6 +108,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notifications',
+                'notifications.context_processors.vapid_public_key',
                 # 'webpush.utils.webpush',
             ],
         },
@@ -295,8 +296,8 @@ MEDIA_URL = '/media/'
 
 
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
-    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY", "").replace('\n', ''),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY", "").replace('\n', ''),
     "VAPID_ADMIN_EMAIL": "adminhr@surgesevenltd.com"
 }
 

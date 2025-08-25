@@ -1,4 +1,5 @@
 from .models import Notification
+from django.conf import settings
 
 def notifications(request):
     if request.user.is_authenticated:
@@ -9,3 +10,8 @@ def notifications(request):
             'notifications': notifications,
         }
     return {}
+
+def vapid_public_key(request):
+    return {
+        'VAPID_PUBLIC_KEY': settings.WEBPUSH_SETTINGS.get('VAPID_PUBLIC_KEY', '')
+    }

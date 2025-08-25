@@ -92,5 +92,50 @@ class PushSubscriptionView(View):
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        
 
+# views.py
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import PushSubscription
+
+@csrf_exempt
+@require_POST
+@login_required
+def push_subscribe(request):
+    try:
+        # Parse the subscription data from the request
+        data = json.loads(request.body)
+        print("Received data:", data)  # Debug print
+        
+        # Extract data from dictionary (not as attributes)
+        endpoint = data.get('endpoint')
+        keys = data.get('keys', {})
+        
+        # Extract auth and p256dh from keys dictionary
+        auth = keys.get('auth', '')
+        p256dh = keys.get('p256dh', '')
+        
+        if not endpoint:
+            return JsonResponse({'status': 'error', 'message': 'Missing endpoint'}, status=400)
+        
+        # Save the subscription to the database
+        subscription, created = PushSubscription.objects.update_or_create(
+            user=request.user,
+            endpoint=endpoint,
+            defaults={'auth': auth, 'p256dh': p256dh}
+        )
+        
+        if created:
+            message = 'Subscription created successfully'
+        else:
+            message = 'Subscription updated successfully'
+        
+        return JsonResponse({'status': 'success', 'message': message})
+    except Exception as e:
+        print("Error:", str(e))  # Debug print
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
