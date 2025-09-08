@@ -1,36 +1,3 @@
-# import os
-# from pathlib import Path
-# from google.oauth2.credentials import Credentials
-# from google_auth_oauthlib.flow import InstalledAppFlow
-# from google.auth.transport.requests import Request
-
-# # Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR = Path(__file__).resolve().parent.parent
-
-# SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
-# def get_gmail_credentials():
-#     creds = None
-#     token_path = os.path.join(BASE_DIR, 'token.json')
-#     credentials_path = os.path.join(BASE_DIR, 'credentials.json')
-    
-#     if os.path.exists(token_path):
-#         creds = Credentials.from_authorized_user_file(token_path, SCOPES)
-    
-#     if not creds or not creds.valid:
-#         if creds and creds.expired and creds.refresh_token:
-#             creds.refresh(Request())
-#         else:
-#             flow = InstalledAppFlow.from_client_secrets_file(
-#                 credentials_path, SCOPES)
-#             creds = flow.run_local_server(port=0)
-        
-#         with open(token_path, 'w') as token:
-#             token.write(creds.to_json())
-    
-#     return creds
-
-
 import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
