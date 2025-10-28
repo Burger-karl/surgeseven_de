@@ -23,8 +23,27 @@
         <div class="badge bg-primary fs-6">Tracker ID: {{ truck.tracker_id }}</div>
     </div>
 
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="text-center mb-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading map...</span>
+        </div>
+        <p class="mt-2 text-muted">Initializing real-time tracking...</p>
+    </div>
+
     <div class="card mb-4">
-        <div class="card-body p-0" style="height: 400px;">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Live Tracking Map</h5>
+            <div>
+                <button id="refresh-btn" class="btn btn-sm btn-outline-light">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button id="locate-btn" class="btn btn-sm btn-outline-light ms-1">
+                    <i class="fas fa-location-arrow"></i> Locate
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0" style="height: 500px;">
             <div id="map" style="height: 100%;"></div>
         </div>
     </div>
@@ -33,17 +52,16 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Tracking Information</h5>
+                    <h5 class="mb-0">Live Tracking Information</h5>
                 </div>
                 <div class="card-body">
-                    <!-- FIX: Added table-responsive for mobile scrolling -->
                     <div class="table-responsive">
                         <table class="table table-bordered mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Latitude</th>
-                                    <th>Longitude</th>
-                                    <th>Speed (km/h)</th>
+                                    <th>Location</th>
+                                    <th>Coordinates</th>
+                                    <th>Speed</th>
                                     <th>Last Updated</th>
                                     {% if is_admin %}
                                     <th>Battery</th>
@@ -53,9 +71,9 @@
                             </thead>
                             <tbody>
                                 <tr id="tracking-info">
-                                    <td id="latitude">{{ tracker_data.latitude|default:"-" }}</td>
-                                    <td id="longitude">{{ tracker_data.longitude|default:"-" }}</td>
-                                    <td id="speed">{{ tracker_data.speed|default:"0" }}</td>
+                                    <td id="location-address">Loading...</td>
+                                    <td id="coordinates">{{ tracker_data.latitude|default:"-" }}, {{ tracker_data.longitude|default:"-" }}</td>
+                                    <td id="speed">{{ tracker_data.speed|default:"0" }} km/h</td>
                                     <td id="last_updated">{{ tracker_data.last_updated|default:"-" }}</td>
                                     {% if is_admin %}
                                     <td id="battery">{{ tracker_data.voltage|default:"-" }}V</td>
@@ -64,6 +82,18 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route Information Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Route Information</h5>
+                </div>
+                <div class="card-body">
+                    <div id="route-info" class="text-muted">
+                        No route information available
                     </div>
                 </div>
             </div>
@@ -78,193 +108,337 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Current Status:</span>
-                            <span id="status" class="badge bg-{% if tracker_data.status == 'OK' %}success{% else %}danger{% endif %}">
-                                {{ tracker_data.status|default:"Unknown" }}
-                            </span>
+                            <span id="status" class="badge bg-warning">Unknown</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Movement:</span>
+                            <span id="movement" class="badge bg-secondary">Unknown</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Update Frequency:</span>
+                            <span class="badge bg-info">30 sec</span>
                         </li>
                         {% if is_admin %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Alarm Status:</span>
-                            <span id="alarm" class="badge bg-{% if not tracker_data.alarm %}success{% else %}danger{% endif %}">
-                                {% if tracker_data.alarm %}Active{% else %}Normal{% endif %}
-                            </span>
+                            <span id="alarm" class="badge bg-success">Normal</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>Movement:</span>
-                            <span id="movement" class="badge bg-{% if tracker_data.moving %}primary{% else %}secondary{% endif %}">
-                                {% if tracker_data.moving %}Moving{% else %}Stopped{% endif %}
-                            </span>
+                            <span>Tracker ID:</span>
+                            <span class="badge bg-dark">{{ truck.tracker_id }}</span>
                         </li>
                         {% endif %}
                     </ul>
+                </div>
+            </div>
+
+            <!-- Tracking History -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Recent Locations</h5>
+                </div>
+                <div class="card-body">
+                    <div id="location-history" class="small">
+                        <div class="text-center text-muted">No location history yet</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Leaflet.js for Map Rendering -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<!-- Leaflet.awesome-markers for better markers -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.min.js"></script>
-<!-- Leaflet Plugins for better map details -->
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<!-- Leaflet.js with Enhanced Features -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet Plugins -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
 <script>
+// Global variables
+let map, marker, routingControl, locationHistory = [];
+let refreshInterval;
+
 document.addEventListener("DOMContentLoaded", function () {
-    // Initialize map with default center
-    var map = L.map('map', {
+    // Hide loading spinner when map is ready
+    const loadingSpinner = document.getElementById('loading-spinner');
+    
+    // Initialize map with better default view
+    map = L.map('map', {
         zoomControl: true,
-        maxZoom: 18,
-        minZoom: 3
-    }).setView([0, 0], 2);
+        maxZoom: 19,
+        minZoom: 3,
+        preferCanvas: true // Better performance for moving markers
+    }).setView([9.0820, 8.6753], 6); // Default center on Nigeria
+
+    // FIX: Use multiple tile layers for better reliability and Google Maps-like experience
+    const baseLayers = {
+        "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }),
+        "OpenStreetMap Hot": L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team',
+            maxZoom: 19
+        }),
+        "CartoDB Voyager": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors, © CartoDB',
+            maxZoom: 20
+        })
+    };
+
+    // Add default base layer
+    baseLayers["CartoDB Voyager"].addTo(map);
     
-    // FIX: Use detailed map tiles with street names
-    // CartoDB Voyager tiles (shows street names and details)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        maxZoom: 19
+    // Add layer control
+    L.control.layers(baseLayers).addTo(map);
+
+    // Create custom truck icon with rotation support
+    const truckIcon = L.divIcon({
+        html: '<div class="truck-marker"><i class="fas fa-truck"></i></div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        className: 'truck-marker-container'
+    });
+
+    // Initialize marker
+    marker = L.marker([0, 0], { 
+        icon: truckIcon,
+        zIndexOffset: 1000 
     }).addTo(map);
-    
-    // Add geocoder for reverse lookup
+
+    // Add scale control
+    L.control.scale({ imperial: false }).addTo(map);
+
+    // Add geocoder for address lookup
     L.Control.geocoder({
         defaultMarkGeocode: false,
-        position: 'topleft'
+        position: 'topleft',
+        placeholder: 'Search location...',
+        errorMessage: 'Location not found.'
     })
     .on('markgeocode', function(e) {
         map.fitBounds(e.geocode.bbox);
     })
     .addTo(map);
 
-    // Create a custom truck icon
-    var truckIcon = L.AwesomeMarkers.icon({
-        icon: 'truck',
-        prefix: 'fa',
-        markerColor: 'blue',
-        iconColor: 'white'
-    });
-
-    // Add marker with custom icon
-    var marker = L.marker([0, 0], {icon: truckIcon}).addTo(map);
-    
-    // Add circle for accuracy if available
-    var accuracyCircle = L.circle([0, 0], {radius: 0}).addTo(map);
-    
-    // Add scale control
-    L.control.scale().addTo(map);
-
-    // Function to format date/time
-    function formatDateTime(timestamp) {
-        if (!timestamp) return '-';
-        const date = new Date(timestamp);
-        return date.toLocaleString();
-    }
-
-    // Function to update the UI with new data
-    function updateUI(data) {
-        if (data.latitude && data.longitude) {
-            const lat = parseFloat(data.latitude);
-            const lon = parseFloat(data.longitude);
-            const speed = data.speed || "0";
-            const updatedTime = formatDateTime(data.last_updated);
-
-            // Update table data
-            document.getElementById("latitude").textContent = lat.toFixed(6);
-            document.getElementById("longitude").textContent = lon.toFixed(6);
-            document.getElementById("speed").textContent = speed;
-            document.getElementById("last_updated").textContent = updatedTime;
-            
-            // Update map marker
-            marker.setLatLng([lat, lon])
-                .bindPopup(`
-                    <b>${document.title}</b><br>
-                    Speed: ${speed} km/h<br>
-                    Last update: ${updatedTime}
-                `)
-                .openPopup();
-                
-            // Center map on marker with smooth transition
-            map.setView([lat, lon], 15, {animate: true, duration: 1});
-            
-            // Update accuracy circle if data available
-            if (data.accuracy) {
-                accuracyCircle.setLatLng([lat, lon])
-                    .setRadius(data.accuracy)
-                    .setStyle({color: '#3388ff', fillOpacity: 0.2});
-            }
-            
-            // Update status indicators for admin
-            {% if is_admin %}
-            if (data.voltage) {
-                document.getElementById("battery").textContent = data.voltage + "V";
-            }
-            if (data.gps_satellites) {
-                document.getElementById("signal").textContent = data.gps_satellites + " satellites";
-            }
-            if (data.status) {
-                const statusBadge = document.getElementById("status");
-                statusBadge.textContent = data.status;
-                statusBadge.className = `badge bg-${data.status === 'OK' ? 'success' : 'danger'}`;
-            }
-            if (data.alarm !== undefined) {
-                const alarmBadge = document.getElementById("alarm");
-                alarmBadge.textContent = data.alarm ? 'Active' : 'Normal';
-                alarmBadge.className = `badge bg-${data.alarm ? 'danger' : 'success'}`;
-            }
-            if (data.moving !== undefined) {
-                const movementBadge = document.getElementById("movement");
-                movementBadge.textContent = data.moving ? 'Moving' : 'Stopped';
-                movementBadge.className = `badge bg-${data.moving ? 'primary' : 'secondary'}`;
-            }
-            {% endif %}
+    // Button event handlers
+    document.getElementById('refresh-btn').addEventListener('click', fetchTrackingData);
+    document.getElementById('locate-btn').addEventListener('click', function() {
+        if (marker.getLatLng().lat !== 0) {
+            map.setView(marker.getLatLng(), 16, { animate: true, duration: 1 });
         }
-    }
-
-    // Function to fetch tracking data
-    function fetchTrackingData() {
-        fetch("{% url 'fetch_tracking_data' truck.id %}")
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        console.error('Failed response:', text);
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Received data:', data);
-                if (data.error) {
-                    console.error('Tracking error:', data.error);
-                    if (!window.trackingDataLoaded) {
-                        alert('Error loading tracking data: ' + data.error);
-                    }
-                } else {
-                    updateUI(data);
-                    window.trackingDataLoaded = true;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching tracking data:', error);
-                if (!window.trackingDataLoaded) {
-                    alert('Failed to connect to tracking service. Please try again later.');
-                }
-            });
-    }
+    });
 
     // Initial data load
     fetchTrackingData();
     
     // Set up auto-refresh (every 30 seconds)
-    const refreshInterval = setInterval(fetchTrackingData, 30000);
+    refreshInterval = setInterval(fetchTrackingData, 30000);
     
-    // Clean up interval when page is unloaded
-    window.addEventListener('beforeunload', () => {
-        clearInterval(refreshInterval);
+    // Hide loading spinner after initial load
+    setTimeout(() => {
+        loadingSpinner.style.display = 'none';
+    }, 2000);
+});
+
+// Function to get address from coordinates (reverse geocoding)
+async function getAddressFromCoordinates(lat, lng) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await response.json();
+        
+        if (data && data.address) {
+            const address = data.address;
+            // Build a readable address string
+            const addressParts = [];
+            if (address.road) addressParts.push(address.road);
+            if (address.suburb) addressParts.push(address.suburb);
+            if (address.city) addressParts.push(address.city);
+            if (address.state) addressParts.push(address.state);
+            if (address.country) addressParts.push(address.country);
+            
+            return addressParts.join(', ') || 'Address not available';
+        }
+    } catch (error) {
+        console.error('Reverse geocoding error:', error);
+    }
+    return 'Address not available';
+}
+
+// Function to update location history
+function updateLocationHistory(locationData) {
+    const historyContainer = document.getElementById('location-history');
+    
+    // Add new location to history (max 5 entries)
+    locationHistory.unshift({
+        address: locationData.address,
+        timestamp: new Date().toLocaleTimeString(),
+        coordinates: `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`
     });
+    
+    if (locationHistory.length > 5) {
+        locationHistory.pop();
+    }
+    
+    // Update UI
+    if (locationHistory.length > 0) {
+        historyContainer.innerHTML = locationHistory.map(loc => `
+            <div class="border-bottom pb-2 mb-2">
+                <div class="fw-bold small">${loc.address}</div>
+                <div class="text-muted">${loc.timestamp}</div>
+                <div class="text-muted">${loc.coordinates}</div>
+            </div>
+        `).join('');
+    }
+}
+
+// Function to update the UI with new data
+async function updateUI(data) {
+    if (data.latitude && data.longitude) {
+        const lat = parseFloat(data.latitude);
+        const lng = parseFloat(data.longitude);
+        const speed = data.speed || "0";
+        const updatedTime = data.last_updated ? new Date(data.last_updated).toLocaleString() : new Date().toLocaleString();
+
+        // Get address from coordinates
+        const address = await getAddressFromCoordinates(lat, lng);
+
+        // Update table data
+        document.getElementById("location-address").textContent = address;
+        document.getElementById("coordinates").textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        document.getElementById("speed").textContent = `${speed} km/h`;
+        document.getElementById("last_updated").textContent = updatedTime;
+        
+        // Update location history
+        updateLocationHistory({
+            lat: lat,
+            lng: lng,
+            address: address
+        });
+        
+        // Update map marker with smooth transition
+        const oldLatLng = marker.getLatLng();
+        const newLatLng = L.latLng(lat, lng);
+        
+        marker.setLatLng(newLatLng)
+            .bindPopup(`
+                <div class="text-center">
+                    <strong>${document.querySelector('h2').textContent}</strong><br>
+                    <small>${address}</small><br>
+                    <hr class="my-1">
+                    <strong>Speed:</strong> ${speed} km/h<br>
+                    <strong>Last Update:</strong> ${updatedTime}
+                </div>
+            `);
+
+        // If this is the first update or significant movement, center map
+        if (oldLatLng.lat === 0 || oldLatLng.distanceTo(newLatLng) > 100) {
+            map.setView(newLatLng, 16, { animate: true, duration: 1 });
+        }
+        
+        // Update status indicators
+        updateStatusIndicators(data);
+    }
+}
+
+// Function to update status badges
+function updateStatusIndicators(data) {
+    // Update status badge
+    const statusBadge = document.getElementById("status");
+    if (data.status) {
+        statusBadge.textContent = data.status;
+        statusBadge.className = `badge bg-${data.status === 'OK' ? 'success' : 'danger'}`;
+    }
+
+    // Update movement badge
+    const movementBadge = document.getElementById("movement");
+    if (data.moving !== undefined) {
+        movementBadge.textContent = data.moving ? 'Moving' : 'Stopped';
+        movementBadge.className = `badge bg-${data.moving ? 'primary' : 'secondary'}`;
+    }
+
+    // Admin-only indicators
+    {% if is_admin %}
+    if (data.voltage) {
+        document.getElementById("battery").textContent = data.voltage + "V";
+    }
+    if (data.gps_satellites) {
+        document.getElementById("signal").textContent = data.gps_satellites + " satellites";
+    }
+    if (data.alarm !== undefined) {
+        const alarmBadge = document.getElementById("alarm");
+        alarmBadge.textContent = data.alarm ? 'Active' : 'Normal';
+        alarmBadge.className = `badge bg-${data.alarm ? 'danger' : 'success'}`;
+    }
+    {% endif %}
+}
+
+// Function to fetch tracking data
+async function fetchTrackingData() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    
+    try {
+        // Show loading state on button
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        refreshBtn.disabled = true;
+
+        const response = await fetch("{% url 'fetch_tracking_data' truck.id %}");
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            console.error('Tracking error:', data.error);
+            if (!window.trackingDataLoaded) {
+                showAlert('Error loading tracking data: ' + data.error, 'danger');
+            }
+        } else {
+            await updateUI(data);
+            window.trackingDataLoaded = true;
+        }
+    } catch (error) {
+        console.error('Error fetching tracking data:', error);
+        if (!window.trackingDataLoaded) {
+            showAlert('Connection issue. Please check your internet connection.', 'warning');
+        }
+    } finally {
+        // Restore button state
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        refreshBtn.disabled = false;
+    }
+}
+
+// Function to show alerts
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Clean up when page is unloaded
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
 });
 </script>
 
@@ -274,6 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
     }
     .badge {
         font-size: 0.85em;
@@ -281,14 +456,51 @@ document.addEventListener("DOMContentLoaded", function () {
     .table th {
         white-space: nowrap;
     }
-    /* FIX: Mobile table scrolling */
     .table-responsive {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
     }
-    /* Ensure map controls are visible on mobile */
+    
+    /* Custom truck marker styles */
+    .truck-marker-container {
+        background: none;
+        border: none;
+    }
+    .truck-marker {
+        font-size: 20px;
+        color: #007bff;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Loading spinner */
+    #loading-spinner {
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .card-body.p-0 {
+            height: 300px !important;
+        }
+        .btn-group .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+    }
+    
+    /* Leaflet control adjustments */
     .leaflet-top, .leaflet-bottom {
         z-index: 400;
+    }
+    .leaflet-control-geocoder {
+        border-radius: 4px;
     }
 </style>
 {% endblock %}
