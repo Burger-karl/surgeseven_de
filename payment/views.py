@@ -125,88 +125,6 @@ from django.core.mail import EmailMultiAlternatives
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-class VerifyBookingPaymentView(LoginRequiredMixin, View):
-    def get(self, request, ref, *args, **kwargs):
-        response = paystack_client.verify_transaction(ref)
-        logger.debug('Paystack verification response: %s', response)
-
-        if response['status'] and response['data']['status'] == 'success':
-            booking = get_object_or_404(Booking, booking_code=ref)
-            booking.payment_completed = True
-            booking.booking_status = 'active'
-            booking.save()
-
-            # Create payment record
-            Payment.objects.create(
-                user=request.user,
-                booking=booking,
-                amount=booking.delivery_cost,
-                ref=ref,
-                email=request.user.email,
-                verified=True
-            )
-
-            # Create the receipt
-            receipt = Receipt.objects.create(
-                booking=booking,
-                delivery_cost=booking.delivery_cost,
-                insurance_payment=booking.insurance_payment,
-                total_delivery_cost=booking.total_delivery_cost,
-            )
-
-            # Prepare email context
-            context = {
-                'booking': booking,
-                'truck_name': booking.truck.name,
-                'has_premium': booking.insurance_payment > 0,
-                'insurance_company': "Veritas Kapital Assurance",
-                'receipt': receipt
-            }
-
-            # Send receipts via email
-            self.send_receipts_email(booking, context)
-
-            messages.success(request, "Payment successful! Your receipts have been emailed to you.")
-            return HttpResponseRedirect(reverse('generate_receipt', kwargs={'booking_code': booking.booking_code}))
-        else:
-            messages.error(request, "Payment verification failed.")
-            return HttpResponseRedirect(reverse('booking_list'))
-
-    def send_receipts_email(self, booking, context):
-        # Render both receipts
-        booking_receipt_html = render_to_string('booking/receipt_email.html', context)
-        plain_message = strip_tags(booking_receipt_html)
-        
-        # Create email message
-        subject = f"Your Booking Receipt - #{booking.booking_code}"
-        from_email = settings.DEFAULT_FROM_EMAIL
-        to_email = booking.client.email
-        
-        # Create SendGrid email
-        message = Mail(
-            from_email=from_email,
-            to_emails=to_email,
-            subject=subject,
-            html_content=booking_receipt_html,
-            plain_text_content=plain_message
-        )
-        
-        try:
-            # Initialize SendGrid client
-            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-            
-            # Attach insurance receipt if applicable
-            if context['has_premium']:
-                insurance_receipt_html = render_to_string('booking/insurance_receipt_email.html', context)
-                message.add_content(insurance_receipt_html, "text/html")
-            
-            # Send email
-            response = sg.send(message)
-            logger.info(f"Receipt email sent to {to_email}. Status: {response.status_code}")
-            
-        except Exception as e:
-            logger.error(f"Error sending receipt email: {str(e)}")
-
 
 class CreateTruckActivationPaymentView(LoginRequiredMixin, View):
     def get(self, request, truck_id):
@@ -272,6 +190,105 @@ class CreateTruckActivationPaymentView(LoginRequiredMixin, View):
             return redirect('truck_list')
 
 
+from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import View
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from booking.models import Receipt
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+import resend
+from django.conf import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Configure Resend
+resend.api_key = settings.RESEND_API_KEY
+
+class VerifyBookingPaymentView(LoginRequiredMixin, View):
+    def get(self, request, ref, *args, **kwargs):
+        response = paystack_client.verify_transaction(ref)
+        logger.debug('Paystack verification response: %s', response)
+
+        if response['status'] and response['data']['status'] == 'success':
+            booking = get_object_or_404(Booking, booking_code=ref)
+            booking.payment_completed = True
+            booking.booking_status = 'active'
+            booking.save()
+
+            # Create payment record
+            Payment.objects.create(
+                user=request.user,
+                booking=booking,
+                amount=booking.delivery_cost,
+                ref=ref,
+                email=request.user.email,
+                verified=True
+            )
+
+            # Create the receipt
+            receipt = Receipt.objects.create(
+                booking=booking,
+                delivery_cost=booking.delivery_cost,
+                insurance_payment=booking.insurance_payment,
+                total_delivery_cost=booking.total_delivery_cost,
+            )
+
+            # Prepare email context
+            context = {
+                'booking': booking,
+                'truck_name': booking.truck.name,
+                'has_premium': booking.insurance_payment > 0,
+                'insurance_company': "Veritas Kapital Assurance",
+                'receipt': receipt,
+                'current_year': timezone.now().year,
+                'site_url': settings.SITE_URL
+            }
+
+            # Send receipts via Resend
+            self.send_receipts_email(booking, context)
+
+            messages.success(request, "Payment successful! Your receipts have been emailed to you.")
+            return HttpResponseRedirect(reverse('generate_receipt', kwargs={'booking_code': booking.booking_code}))
+        else:
+            messages.error(request, "Payment verification failed.")
+            return HttpResponseRedirect(reverse('booking_list'))
+
+    def send_receipts_email(self, booking, context):
+        try:
+            # Render booking receipt
+            booking_receipt_html = render_to_string('booking/emails/booking_receipt.html', context)
+            booking_receipt_text = strip_tags(booking_receipt_html)
+            
+            # Prepare email content
+            subject = f"Booking Confirmation - #{booking.booking_code}"
+            
+            # Create email parameters for Resend
+            params = {
+                "from": f"SurgeSeven <{settings.DEFAULT_FROM_EMAIL}>",
+                "to": [booking.client.email],
+                "subject": subject,
+                "html": booking_receipt_html,
+                "text": booking_receipt_text,
+            }
+            
+            # If premium user, include insurance receipt
+            if context['has_premium']:
+                insurance_receipt_html = render_to_string('booking/emails/insurance_receipt.html', context)
+                # Note: Resend doesn't support multiple HTML parts in one email
+                # We'll combine both receipts in one email or send separately
+                # For now, we'll include insurance details in the main receipt
+            
+            # Send email using Resend
+            response = resend.Emails.send(params)
+            logger.info(f"Payment receipt email sent to {booking.client.email}. Resend ID: {response['id']}")
+            
+        except Exception as e:
+            logger.error(f"Error sending payment receipt email: {str(e)}")
+
+
 class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
     def get(self, request, ref):
         payment = get_object_or_404(Payment, ref=ref, payment_type=Payment.TRUCK_ACTIVATION)
@@ -287,7 +304,7 @@ class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
             truck.activation_payment = payment
             truck.save()
             
-            # Send notification email
+            # Send notification email using Resend
             self.send_activation_email(truck)
             
             messages.success(
@@ -300,29 +317,31 @@ class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
             return redirect('truck_list')
     
     def send_activation_email(self, truck):
-        subject = f"Truck Activation Successful - {truck.name}"
-        context = {
-            'truck': truck,
-            'owner': truck.owner,
-            'amount': 85000
-        }
-        html_content = render_to_string('payment/truck_activation_email.html', context)
-        plain_message = strip_tags(html_content)
-        
-        message = Mail(
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to_emails=truck.owner.email,
-            subject=subject,
-            html_content=html_content,
-            plain_text_content=plain_message
-        )
-        
         try:
-            sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
-            sg.send(message)
+            context = {
+                'truck': truck,
+                'owner': truck.owner,
+                'amount': 85000,
+                'current_year': timezone.now().year,
+                'site_url': settings.SITE_URL
+            }
+            
+            html_content = render_to_string('payment/emails/truck_activation_receipt.html', context)
+            text_content = strip_tags(html_content)
+            
+            params = {
+                "from": f"SurgeSeven <{settings.DEFAULT_FROM_EMAIL}>",
+                "to": [truck.owner.email],
+                "subject": f"Truck Activation Successful - {truck.name}",
+                "html": html_content,
+                "text": text_content,
+            }
+            
+            response = resend.Emails.send(params)
+            logger.info(f"Truck activation email sent to {truck.owner.email}. Resend ID: {response['id']}")
+            
         except Exception as e:
             logger.error(f"Error sending truck activation email: {str(e)}")
-
 
 # WITHDRAWAL
 

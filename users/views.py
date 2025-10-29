@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from django.views import View
 from django.views.generic import FormView, DetailView, ListView
@@ -10,10 +9,7 @@ from django.urls import reverse_lazy, reverse
 from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm, AdminUserCreationForm
 from .models import User, OTP, PasswordResetToken, Profile, Referral
 from subscriptions.models import SubscriptionPlan, UserSubscription
-from .emails import send_otp_email
-from googleapiclient.discovery import build
-import base64
-from email.mime.text import MIMEText
+from .emails import send_otp_email, send_welcome_email
 from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
@@ -23,6 +19,7 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.core.cache import cache
 from django_ratelimit.decorators import ratelimit
+from django_ratelimit.core import is_ratelimited
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,6 +52,12 @@ class RegisterView(View):
         return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
+        # Fixed rate limiting - use the correct function signature
+        if is_ratelimited(request, group='register', key='ip', rate='5/h', increment=True):
+            messages.error(request, "Too many registration attempts. Please try again in an hour.")
+            form = self.form_class()
+            return render(request, self.template_name, {'form': form})
+        
         form = self.form_class(request.POST)
         if form.is_valid():
             user_data = {
@@ -73,25 +76,28 @@ class RegisterView(View):
             request.session['user_data'] = user_data
             otp = get_random_string(length=6, allowed_chars='0123456789')
             request.session['otp'] = otp
+            request.session['otp_created_at'] = timezone.now().isoformat()
             
-            # Send OTP using SendGrid
+            # Send OTP using Resend
             email_sent = send_otp_email(
                 to_email=user_data['email'],
                 otp_code=otp,
                 subject='Verify your SurgeSeven account'
             )
 
-            
             if email_sent:
                 messages.success(request, "An OTP has been sent to your email for verification.")
                 return redirect('verify-email')
             else:
-                messages.error(request, "Failed to send OTP. Please try again.")
+                logger.error(f"Failed to send OTP email to {user_data['email']}")
+                messages.error(
+                    request, 
+                    "Failed to send OTP email. Please check your email address and try again."
+                )
                 return render(request, self.template_name, {'form': form})
                 
         return render(request, self.template_name, {'form': form})
 
-        
 
 class VerifyEmailView(FormView):
     form_class = OTPForm
@@ -101,56 +107,81 @@ class VerifyEmailView(FormView):
     def form_valid(self, form):
         otp = form.cleaned_data.get('otp')
         session_otp = self.request.session.get('otp')
+        otp_created_at = self.request.session.get('otp_created_at')
+        
+        # Check OTP expiration
+        if otp_created_at:
+            created_time = timezone.datetime.fromisoformat(otp_created_at)
+            if timezone.now() - created_time > timedelta(minutes=OTP_EXPIRATION_MINUTES):
+                messages.error(self.request, "OTP has expired. Please register again.")
+                self._clear_session_data()
+                return redirect('register')
+        
         if otp == session_otp:
             user_data = self.request.session.get('user_data')
             if not user_data:
-                form.add_error(None, 'User data not found. Please register again.')
-                return self.form_invalid(form)
+                messages.error(self.request, 'Session expired. Please register again.')
+                return redirect('register')
 
-            # Create user in the database now
-            user = User.objects.create_user(
-                email=user_data['email'],
-                username=user_data['username'],
-                password=user_data['password1'],
-                user_type=user_data['user_type'],
-                is_verified=True,
-                is_active=True  # Activate after verification
-            )
-
-            # Assign free subscription if user is a client
-            if user.user_type == 'client':
-                free_plan = SubscriptionPlan.objects.get(name='free')
-                UserSubscription.objects.create(
-                    user=user,
-                    plan=free_plan,
-                    is_active=False,
-                    subscription_status='inactive'
+            try:
+                # Create user in the database now
+                user = User.objects.create_user(
+                    email=user_data['email'],
+                    username=user_data['username'],
+                    password=user_data['password1'],
+                    user_type=user_data['user_type'],
+                    is_verified=True,
+                    is_active=True
                 )
 
-            # Handle referral logic
-            referral_code = user_data.get('referral_code')
-            if referral_code:
-                try:
-                    referrer = User.objects.get(referral_code=referral_code)
-                    # Create the Referral object
-                    Referral.objects.create(referrer=referrer, referred_user=user)
-                    # Credit the referrer with #1000
-                    referrer.credits += 1000
-                    referrer.save()
-                    messages.success(self.request, f"Referral successful! {referrer.email} has been credited with #1000.")
-                except User.DoesNotExist:
-                    messages.warning(self.request, "Invalid referral code. Proceeding without referral.")
+                # Assign free subscription if user is a client
+                if user.user_type == 'client':
+                    free_plan = SubscriptionPlan.objects.get(name='free')
+                    UserSubscription.objects.create(
+                        user=user,
+                        plan=free_plan,
+                        is_active=False,
+                        subscription_status='inactive'
+                    )
 
-            # Clear session data
-            del self.request.session['user_data']
-            del self.request.session['otp']
+                # Handle referral logic
+                referral_code = user_data.get('referral_code')
+                if referral_code:
+                    try:
+                        referrer = User.objects.get(referral_code=referral_code)
+                        Referral.objects.create(referrer=referrer, referred_user=user)
+                        referrer.credits += 1000
+                        referrer.save()
+                        messages.success(self.request, f"Referral successful! {referrer.email} has been credited with #1000.")
+                    except User.DoesNotExist:
+                        messages.warning(self.request, "Invalid referral code. Proceeding without referral.")
 
-            messages.success(self.request, "Your email has been verified! You can now log in.")
-            return super().form_valid(form)
+                # Send welcome email
+                send_welcome_email(user.email, user.username)
+
+                # Clear session data
+                self._clear_session_data()
+
+                messages.success(self.request, "Your email has been verified! You can now log in.")
+                logger.info(f"New user registered successfully: {user.email}")
+                return super().form_valid(form)
+                
+            except Exception as e:
+                logger.error(f"Error creating user during verification: {str(e)}")
+                messages.error(self.request, "An error occurred during registration. Please try again.")
+                return self.form_invalid(form)
+                
         else:
-            form.add_error('otp', 'Invalid OTP')
-            return self.form_invalid(form)       
-                             
+            form.add_error('otp', 'Invalid OTP code. Please try again.')
+            return self.form_invalid(form)
+
+    def _clear_session_data(self):
+        """Clear session data related to registration"""
+        session_keys = ['user_data', 'otp', 'otp_created_at']
+        for key in session_keys:
+            if key in self.request.session:
+                del self.request.session[key]
+                
 
 @method_decorator(login_required, name='dispatch')
 class ReferralView(View):

@@ -230,15 +230,23 @@ class BookingUpdateView(UpdateView):
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+import resend
+from django.conf import settings
+import logging
+from django.utils import timezone
 
+logger = logging.getLogger(__name__)
+
+# Configure Resend
+resend.api_key = settings.RESEND_API_KEY
 
 @method_decorator(login_required, name='dispatch')
 class GenerateReceiptView(DetailView):
     model = Booking
     template_name = 'booking/receipt.html'
     context_object_name = 'booking'
-    slug_field = 'booking_code'  # Add this
-    slug_url_kwarg = 'booking_code'  # Add this
+    slug_field = 'booking_code'
+    slug_url_kwarg = 'booking_code'
 
     def get_object(self, queryset=None):
         booking_code = self.kwargs.get('booking_code')
@@ -251,7 +259,7 @@ class GenerateReceiptView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        booking = self.object  # Use self.object instead of self.get_object()
+        booking = self.object
         
         # Add all required data to context
         context['truck_name'] = booking.truck.name
@@ -272,44 +280,45 @@ class GenerateReceiptView(DetailView):
             plan__name=SubscriptionPlan.PREMIUM
         ).exists()
         
-        context['insurance_company'] = "Veritas Kapital Assurance"
+        context['insurance_company'] = "AXA Mansard Insurance"
+        context['current_year'] = timezone.now().year
+        context['site_url'] = settings.SITE_URL
         return context
 
     def render_to_response(self, context, **response_kwargs):
         booking = context['booking']
         
-        # Generate and send email with receipts
+        # Generate and send email with receipts using Resend
         if booking.client.email:
             self.send_receipt_email(booking, context)
         
         return super().render_to_response(context, **response_kwargs)
 
     def send_receipt_email(self, booking, context):
-        # Render both receipts
-        booking_receipt_html = render_to_string('booking/receipt_email.html', context)
-        plain_message = strip_tags(booking_receipt_html)
-        
-        # Create email
-        subject = f"Your Booking Receipt - #{booking.booking_code}"
-        from_email = "adminhr@surgesevenltd.com"
-        to_email = booking.client.email
-        
-        email = EmailMultiAlternatives(
-            subject,
-            plain_message,
-            from_email,
-            [to_email]
-        )
-        email.attach_alternative(booking_receipt_html, "text/html")
-        
-        # Attach insurance receipt if premium user
-        if context['has_premium']:
-            insurance_receipt_html = render_to_string('booking/insurance_receipt.html', context)
-            email.attach_alternative(insurance_receipt_html, "text/html")
-        
-        # Send email
-        email.send()
-    
+        try:
+            # Render booking receipt
+            booking_receipt_html = render_to_string('booking/emails/booking_receipt.html', context)
+            booking_receipt_text = strip_tags(booking_receipt_html)
+            
+            # Prepare email content
+            subject = f"Booking Confirmation - #{booking.booking_code}"
+            
+            # Create email parameters for Resend
+            params = {
+                "from": f"SurgeSeven <{settings.DEFAULT_FROM_EMAIL}>",
+                "to": [booking.client.email],
+                "subject": subject,
+                "html": booking_receipt_html,
+                "text": booking_receipt_text,
+            }
+            
+            # Send email using Resend
+            response = resend.Emails.send(params)
+            logger.info(f"Booking receipt email sent to {booking.client.email}. Resend ID: {response['id']}")
+            
+        except Exception as e:
+            logger.error(f"Error sending booking receipt email: {str(e)}")
+
 
 @method_decorator(login_required, name='dispatch')
 class InsuranceReceiptView(DetailView):
@@ -342,9 +351,11 @@ class InsuranceReceiptView(DetailView):
         context['client_full_name'] = booking.client.get_full_name()
         context['client_email'] = booking.client.email
         context['insurance_company'] = "Veritas Kapital Assurance"
+        context['current_year'] = timezone.now().year
+        context['site_url'] = settings.SITE_URL
         
         return context
-    
+        
 
 @method_decorator(login_required, name='dispatch')
 class AvailableTruckListView(ListView):
