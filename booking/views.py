@@ -350,7 +350,7 @@ class InsuranceReceiptView(DetailView):
         context['insurance_payment'] = booking.insurance_payment
         context['client_full_name'] = booking.client.get_full_name()
         context['client_email'] = booking.client.email
-        context['insurance_company'] = "Veritas Kapital Assurance"
+        context['insurance_company'] = "AXA MANSARD INSURANCE"
         context['current_year'] = timezone.now().year
         context['site_url'] = settings.SITE_URL
         

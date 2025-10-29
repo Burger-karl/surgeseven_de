@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Activation Receipt - SurgeSeven</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; margin: 0; padding: 20px; }
+        .receipt-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #ff6b35, #e55627); color: white; padding: 30px; text-align: center; }
+        .logo { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .receipt-title { font-size: 24px; margin-bottom: 5px; }
+        .content { padding: 30px; }
+        .section { margin-bottom: 25px; }
+        .section-title { color: #2c3e50; font-size: 18px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #ff6b35; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item { margin-bottom: 12px; }
+        .info-label { font-weight: 600; color: #555; font-size: 14px; }
+        .info-value { color: #2c3e50; font-size: 15px; }
+        .next-steps { background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800; }
+        .step { margin-bottom: 15px; padding-left: 25px; position: relative; }
+        .step:before { content: "→"; position: absolute; left: 0; color: #ff6b35; font-weight: bold; }
+        .footer { background: #2c3e50; color: white; padding: 25px; text-align: center; font-size: 14px; }
+        .contact-info { margin: 15px 0; opacity: 0.9; }
+        @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } .content { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="receipt-container">
+        <div class="header">
+            <div class="logo">🚛 SurgeSeven</div>
+            <div class="receipt-title">Truck Activation Receipt</div>
+            <div style="opacity: 0.9; font-size: 14px; margin-top: 10px;">Welcome to our fleet!</div>
+        </div>
+        
+        <div class="content">
+            <!-- Activation Details -->
+            <div class="section">
+                <h3 class="section-title">Activation Summary</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Truck Name</div>
+                        <div class="info-value">{{ truck.name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">License Plate</div>
+                        <div class="info-value">{{ truck.license_plate }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Truck Owner</div>
+                        <div class="info-value">{{ owner.get_full_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Activation Fee</div>
+                        <div class="info-value">₦{{ amount|floatformat:2 }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Activation Date</div>
+                        <div class="info-value">{{ truck.updated_at|date:"M d, Y" }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div style="color: #28a745; font-weight: bold;">✅ Activated</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="section">
+                <h3 class="section-title">What Happens Next?</h3>
+                <div class="next-steps">
+                    <div class="step">Our team will contact you within 24 hours to schedule truck inspection</div>
+                    <div class="step">GPS tracker will be installed during the inspection</div>
+                    <div class="step">Once approved, your truck will be available for bookings</div>
+                    <div class="step">You'll receive booking notifications and payments directly</div>
+                </div>
+            </div>
+            
+            <!-- Benefits -->
+            <div class="section">
+                <h3 class="section-title">Fleet Benefits</h3>
+                <div style="background: #e8f5e8; padding: 15px; border-radius: 8px;">
+                    <p style="margin-bottom: 10px; color: #2e7d32;">✅ Guaranteed bookings from verified clients</p>
+                    <p style="margin-bottom: 10px; color: #2e7d32;">📱 Real-time tracking and management</p>
+                    <p style="margin-bottom: 10px; color: #2e7d32;">💰 Secure and timely payments</p>
+                    <p style="margin-bottom: 0; color: #2e7d32;">🛡️ Insurance coverage for all shipments</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div class="contact-info">
+                SurgeSeven Ltd.<br>
+                13 Lukulu Street <br>
+                Wuse Zone 3, Abuja.
+                📧 info@surgesevenltd.com | 📞 +234-701-888-4096
+            </div>
+            <div style="opacity: 0.8; margin-top: 15px;">
+                &copy; {{ current_year }} SurgeSeven Ltd. All rights reserved.<br>
+                Thank you for joining our trusted fleet of transporters.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
