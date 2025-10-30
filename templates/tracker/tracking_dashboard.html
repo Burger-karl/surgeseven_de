@@ -3,6 +3,11 @@
 
 {% block title %}Truck Tracking - {{ truck.name }}{% endblock %}
 
+{% block extra_css %}
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
+
 {% block banner-slider %}
 <section class="breadcrumbs">
     <div class="container">
@@ -153,12 +158,10 @@
 <!-- Leaflet Plugins -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
 <script>
 // Global variables
-let map, marker, routingControl, locationHistory = [];
+let map, marker, locationHistory = [];
 let refreshInterval;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -173,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
         preferCanvas: true // Better performance for moving markers
     }).setView([9.0820, 8.6753], 6); // Default center on Nigeria
 
-    // FIX: Use multiple tile layers for better reliability and Google Maps-like experience
+    // Use multiple tile layers for better reliability
     const baseLayers = {
         "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors',
@@ -195,18 +198,34 @@ document.addEventListener("DOMContentLoaded", function () {
     // Add layer control
     L.control.layers(baseLayers).addTo(map);
 
-    // Create custom truck icon with rotation support
+    // Create a more visible custom truck icon
     const truckIcon = L.divIcon({
-        html: '<div class="truck-marker"><i class="fas fa-truck"></i></div>',
-        iconSize: [30, 30],
-        iconAnchor: [15, 15],
+        html: `
+            <div class="truck-marker">
+                <div class="truck-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="truck-pulse"></div>
+            </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
         className: 'truck-marker-container'
     });
 
-    // Initialize marker
+    // Initialize marker with a more visible icon
     marker = L.marker([0, 0], { 
         icon: truckIcon,
-        zIndexOffset: 1000 
+        zIndexOffset: 1000
+    }).addTo(map);
+
+    // Add a circle to show accuracy/position area
+    const accuracyCircle = L.circle([0, 0], {
+        radius: 50,
+        color: '#007bff',
+        fillColor: '#007bff',
+        fillOpacity: 0.2,
+        weight: 2
     }).addTo(map);
 
     // Add scale control
@@ -229,6 +248,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('locate-btn').addEventListener('click', function() {
         if (marker.getLatLng().lat !== 0) {
             map.setView(marker.getLatLng(), 16, { animate: true, duration: 1 });
+        } else {
+            showAlert('No location data available yet.', 'warning');
         }
     });
 
@@ -287,9 +308,9 @@ function updateLocationHistory(locationData) {
     if (locationHistory.length > 0) {
         historyContainer.innerHTML = locationHistory.map(loc => `
             <div class="border-bottom pb-2 mb-2">
-                <div class="fw-bold small">${loc.address}</div>
-                <div class="text-muted">${loc.timestamp}</div>
-                <div class="text-muted">${loc.coordinates}</div>
+                <div class="fw-bold small text-truncate" title="${loc.address}">${loc.address}</div>
+                <div class="text-muted small">${loc.timestamp}</div>
+                <div class="text-muted small">${loc.coordinates}</div>
             </div>
         `).join('');
     }
@@ -327,12 +348,18 @@ async function updateUI(data) {
             .bindPopup(`
                 <div class="text-center">
                     <strong>${document.querySelector('h2').textContent}</strong><br>
-                    <small>${address}</small><br>
-                    <hr class="my-1">
-                    <strong>Speed:</strong> ${speed} km/h<br>
-                    <strong>Last Update:</strong> ${updatedTime}
+                    <small class="text-muted">${address}</small><br>
+                    <hr class="my-2">
+                    <div class="text-start">
+                        <strong>Speed:</strong> ${speed} km/h<br>
+                        <strong>Last Update:</strong> ${updatedTime}<br>
+                        <strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}
+                    </div>
                 </div>
             `);
+
+        // Update accuracy circle position
+        accuracyCircle.setLatLng(newLatLng);
 
         // If this is the first update or significant movement, center map
         if (oldLatLng.lat === 0 || oldLatLng.distanceTo(newLatLng) > 100) {
@@ -416,9 +443,14 @@ async function fetchTrackingData() {
 
 // Function to show alerts
 function showAlert(message, type) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => alert.remove());
+
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
     alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
@@ -461,22 +493,63 @@ window.addEventListener('beforeunload', () => {
         -webkit-overflow-scrolling: touch;
     }
     
-    /* Custom truck marker styles */
+    /* Enhanced truck marker styles */
     .truck-marker-container {
         background: none;
         border: none;
     }
     .truck-marker {
-        font-size: 20px;
-        color: #007bff;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        position: relative;
+        width: 40px;
+        height: 40px;
+    }
+    .truck-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        background: #007bff;
+        border: 3px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+    }
+    .truck-icon i {
+        color: white;
+        font-size: 14px;
+    }
+    .truck-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: #007bff;
+        border-radius: 50%;
+        opacity: 0.6;
         animation: pulse 2s infinite;
+        z-index: 1;
     }
     
     @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.6;
+        }
+        70% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+        }
     }
     
     /* Loading spinner */
@@ -493,6 +566,21 @@ window.addEventListener('beforeunload', () => {
             font-size: 0.8rem;
             padding: 0.25rem 0.5rem;
         }
+        .truck-marker {
+            width: 32px;
+            height: 32px;
+        }
+        .truck-icon {
+            width: 24px;
+            height: 24px;
+        }
+        .truck-icon i {
+            font-size: 12px;
+        }
+        .truck-pulse {
+            width: 32px;
+            height: 32px;
+        }
     }
     
     /* Leaflet control adjustments */
@@ -501,6 +589,12 @@ window.addEventListener('beforeunload', () => {
     }
     .leaflet-control-geocoder {
         border-radius: 4px;
+    }
+    
+    /* Custom popup styles */
+    .leaflet-popup-content {
+        margin: 12px 15px;
+        min-width: 200px;
     }
 </style>
 {% endblock %}

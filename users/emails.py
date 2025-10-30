@@ -58,8 +58,8 @@ def send_otp_email(to_email, otp_code, subject="Your Verification Code"):
         logger.info(f"OTP email sent successfully to {to_email}. Resend ID: {response['id']}")
         return True
         
-    except resend.core.ResendError as e:
-        # Handle Resend-specific errors
+    except Exception as e:
+        # Handle all Resend errors
         logger.error(f"Resend error sending OTP to {to_email}: {str(e)}")
         return False
         
