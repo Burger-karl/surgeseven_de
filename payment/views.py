@@ -241,7 +241,7 @@ class VerifyBookingPaymentView(LoginRequiredMixin, View):
                 'booking': booking,
                 'truck_name': booking.truck.name,
                 'has_premium': booking.insurance_payment > 0,
-                'insurance_company': "Veritas Kapital Assurance",
+                'insurance_company': "AXA MANSARD INSURANCE",
                 'receipt': receipt,
                 'current_year': timezone.now().year,
                 'site_url': settings.SITE_URL
