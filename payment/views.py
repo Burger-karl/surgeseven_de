@@ -111,83 +111,8 @@ class CreateBookingPaymentView(LoginRequiredMixin, View):
             return redirect('booking_list')  # Return a response here to avoid returning None
 
 
-from django.core.mail import send_mail
-from django.urls import reverse
-from django.shortcuts import get_object_or_404, redirect
-from django.views.generic import View
-from django.contrib import messages
-from django.http import HttpResponseRedirect
-from booking.models import Receipt
-
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.core.mail import EmailMultiAlternatives
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 
-class CreateTruckActivationPaymentView(LoginRequiredMixin, View):
-    def get(self, request, truck_id):
-        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
-        
-        # Check if already activated
-        if truck.activated:
-            messages.info(request, 'This truck is already activated.')
-            return redirect('truck_list')
-        
-        # Check for existing pending payment
-        existing_payment = Payment.objects.filter(
-            truck=truck, 
-            payment_type=Payment.TRUCK_ACTIVATION,
-            verified=False
-        ).first()
-        
-        if existing_payment:
-            # Redirect to existing payment verification
-            return redirect('verify-truck-activation-payment', ref=existing_payment.ref)
-        
-        context = {
-            'truck': truck,
-            'amount': 85000,
-            'description': 'Truck Activation Fee - Required for inspection and tracker assignment'
-        }
-        return render(request, 'payment/truck_activation_confirmation.html', context)
-    
-    def post(self, request, truck_id):
-        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
-        
-        # Prevent duplicate activation
-        if truck.activated:
-            messages.info(request, 'This truck is already activated.')
-            return redirect('truck_list')
-        
-        amount = 85000 * 100  # Convert to kobo
-        email = request.user.email
-        reference = str(uuid.uuid4())
-        
-        # Create payment record
-        payment = Payment.objects.create(
-            user=request.user,
-            truck=truck,
-            amount=amount,
-            ref=reference,
-            email=email,
-            verified=False,
-            payment_type=Payment.TRUCK_ACTIVATION
-        )
-        
-        callback_url = request.build_absolute_uri(
-            reverse('verify-truck-activation-payment', kwargs={'ref': reference})
-        )
-        
-        response = paystack_client.initialize_transaction(email, amount, reference, callback_url)
-        
-        if response['status']:
-            return redirect(response['data']['authorization_url'])
-        else:
-            payment.delete()
-            messages.error(request, 'Payment initialization failed. Please try again.')
-            return redirect('truck_list')
 
 
 from django.urls import reverse
@@ -289,28 +214,126 @@ class VerifyBookingPaymentView(LoginRequiredMixin, View):
             logger.error(f"Error sending payment receipt email: {str(e)}")
 
 
+
+# payment/views.py - Update the truck activation payment views
+
+import logging
+from django.db import transaction
+
+logger = logging.getLogger(__name__)
+
+class CreateTruckActivationPaymentView(LoginRequiredMixin, View):
+    def get(self, request, truck_id):
+        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
+        
+        # Check if already activated
+        if truck.activated:
+            messages.info(request, 'This truck is already activated.')
+            return redirect('truck_list')
+        
+        # Check for existing pending payment
+        existing_payment = Payment.objects.filter(
+            truck=truck, 
+            payment_type=Payment.TRUCK_ACTIVATION,
+            verified=False
+        ).first()
+        
+        if existing_payment:
+            # Redirect to existing payment verification
+            return redirect('verify-truck-activation-payment', ref=existing_payment.ref)
+        
+        # Check if truck meets basic criteria for payment activation
+        if not truck.images.exists():
+            messages.error(request, 'Truck must have images before activation payment.')
+            return redirect('truck_list')
+        
+        context = {
+            'truck': truck,
+            'amount': 85000,
+            'description': 'Truck Activation Fee - Required for inspection and tracker assignment'
+        }
+        return render(request, 'payment/truck_activation_confirmation.html', context)
+    
+    def post(self, request, truck_id):
+        truck = get_object_or_404(Truck, id=truck_id, owner=request.user)
+        
+        # Prevent duplicate activation
+        if truck.activated:
+            messages.info(request, 'This truck is already activated.')
+            return redirect('truck_list')
+        
+        amount = 85000 * 100  # Convert to kobo
+        email = request.user.email
+        reference = str(uuid.uuid4())
+        
+        # Create payment record
+        payment = Payment.objects.create(
+            user=request.user,
+            truck=truck,
+            amount=amount,
+            ref=reference,
+            email=email,
+            verified=False,
+            payment_type=Payment.TRUCK_ACTIVATION
+        )
+        
+        callback_url = request.build_absolute_uri(
+            reverse('verify-truck-activation-payment', kwargs={'ref': reference})
+        )
+        
+        response = paystack_client.initialize_transaction(email, amount, reference, callback_url)
+        
+        if response['status']:
+            return redirect(response['data']['authorization_url'])
+        else:
+            payment.delete()
+            messages.error(request, 'Payment initialization failed. Please try again.')
+            return redirect('truck_list')
+
+
 class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
     def get(self, request, ref):
-        payment = get_object_or_404(Payment, ref=ref, payment_type=Payment.TRUCK_ACTIVATION)
+        payment = get_object_or_404(
+            Payment, 
+            ref=ref, 
+            payment_type=Payment.TRUCK_ACTIVATION,
+            user=request.user  # Ensure user owns the payment
+        )
+        
+        # Prevent processing already verified payments
+        if payment.verified:
+            messages.info(request, 'This payment has already been processed.')
+            return redirect('truck_list')
+        
         response = paystack_client.verify_transaction(ref)
         
         if response['status'] and response['data']['status'] == 'success':
-            payment.verified = True
-            payment.save()
-            
-            # Activate the truck
-            truck = payment.truck
-            truck.activated = True
-            truck.activation_payment = payment
-            truck.save()
-            
-            # Send notification email using Resend
-            self.send_activation_email(truck)
-            
-            messages.success(
-                request, 
-                'Truck activation payment successful! Your truck will be inspected shortly.'
-            )
+            try:
+                with transaction.atomic():
+                    payment.verified = True
+                    payment.save()
+                    
+                    # Activate the truck using the payment method
+                    truck = payment.truck
+                    success, message = truck.activate_via_payment(payment, request.user)
+                    
+                    if success:
+                        # Send notification email using Resend
+                        self.send_activation_email(truck)
+                        
+                        messages.success(
+                            request, 
+                            'Truck activation payment successful! Your truck will be inspected shortly.'
+                        )
+                        logger.info(f"Truck {truck.id} activated via payment by user {request.user.username}")
+                    else:
+                        messages.error(request, f'Truck activation failed: {message}')
+                        logger.error(f"Truck activation failed after payment: {message}")
+                        
+            except Exception as e:
+                logger.error(f"Error processing truck activation payment: {str(e)}")
+                messages.error(request, 'Error processing payment. Please contact support.')
+                
             return redirect('truck_list')
         else:
             messages.error(request, 'Payment verification failed. Please contact support.')
@@ -323,7 +346,8 @@ class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
                 'owner': truck.owner,
                 'amount': 85000,
                 'current_year': timezone.now().year,
-                'site_url': settings.SITE_URL
+                'site_url': settings.SITE_URL,
+                'activation_method': truck.get_activation_status_display()
             }
             
             html_content = render_to_string('payment/emails/truck_activation_receipt.html', context)
@@ -342,6 +366,8 @@ class VerifyTruckActivationPaymentView(LoginRequiredMixin, View):
             
         except Exception as e:
             logger.error(f"Error sending truck activation email: {str(e)}")
+
+
 
 # WITHDRAWAL
 

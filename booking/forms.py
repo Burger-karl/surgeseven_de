@@ -100,6 +100,33 @@ class BookingForm(forms.ModelForm):
         }
 
 
+# class TruckApprovalForm(forms.Form):
+#     truck_ids = forms.MultipleChoiceField(
+#         widget=forms.CheckboxSelectMultiple,
+#         required=False
+#     )
+#     tracker_id = forms.CharField(
+#         max_length=255,
+#         required=True,
+#         label="Tracker ID",
+#         help_text="Enter the tracker ID to assign to the approved trucks.",
+#     )
+
+#     def __init__(self, *args, **kwargs):
+#         super(TruckApprovalForm, self).__init__(*args, **kwargs)
+#         self.fields['truck_ids'].choices = [
+#             (truck.id, f'{truck.name} - Owned by {truck.owner.username}') 
+#             for truck in Truck.objects.filter(available=False)
+#         ]
+
+
+
+# booking/forms.py - Update TruckApprovalForm and add new forms
+
+from django import forms
+from .models import Truck, Booking, TruckImage
+from django.core.exceptions import ValidationError
+
 class TruckApprovalForm(forms.Form):
     truck_ids = forms.MultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
@@ -111,12 +138,64 @@ class TruckApprovalForm(forms.Form):
         label="Tracker ID",
         help_text="Enter the tracker ID to assign to the approved trucks.",
     )
+    activate_trucks = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Activate selected trucks",
+        help_text="Also activate the trucks while approving"
+    )
 
     def __init__(self, *args, **kwargs):
         super(TruckApprovalForm, self).__init__(*args, **kwargs)
+        # Show both activated and non-activated trucks that are not available
         self.fields['truck_ids'].choices = [
-            (truck.id, f'{truck.name} - Owned by {truck.owner.username}') 
+            (truck.id, f'{truck.name} - Owned by {truck.owner.username} (Activated: {truck.activated})') 
             for truck in Truck.objects.filter(available=False)
+        ]
+
+class TruckActivationForm(forms.Form):
+    truck_ids = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Select trucks to activate"
+    )
+    tracker_id = forms.CharField(
+        max_length=255,
+        required=False,
+        label="Tracker ID (Optional)",
+        help_text="Assign tracker ID to activated trucks. Leave blank to set later.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(TruckActivationForm, self).__init__(*args, **kwargs)
+        # Show only trucks that can be activated (not activated yet and meet criteria)
+        activatable_trucks = []
+        for truck in Truck.objects.filter(activated=False):
+            if truck.can_be_activated():
+                activatable_trucks.append(
+                    (truck.id, f'{truck.name} - {truck.owner.username} ({truck.get_weight_range_display()})')
+                )
+        self.fields['truck_ids'].choices = activatable_trucks
+
+class TruckDeactivationForm(forms.Form):
+    truck_ids = forms.MultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        required=True,
+        label="Select trucks to deactivate"
+    )
+    reason = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=False,
+        label="Reason for deactivation",
+        help_text="Optional: Provide reason for deactivation"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(TruckDeactivationForm, self).__init__(*args, **kwargs)
+        # Show only activated trucks
+        self.fields['truck_ids'].choices = [
+            (truck.id, f'{truck.name} - {truck.owner.username} (Tracker: {truck.tracker_id or "Not assigned"})') 
+            for truck in Truck.objects.filter(activated=True)
         ]
 
 

@@ -6,6 +6,8 @@ from cloudinary.models import CloudinaryField
 import cloudinary
 
 
+# booking/models.py - Add the activated field to Truck model
+
 class Truck(models.Model):
     LIGHTWEIGHT = 'lightweight'
     MEDIUMWEIGHT = 'mediumweight'
@@ -35,12 +37,26 @@ class Truck(models.Model):
     name = models.CharField(max_length=100)
     weight_range = models.CharField(max_length=15, choices=WEIGHT_CHOICES, default=LIGHTWEIGHT)
     available = models.BooleanField(default=False)
+    activated = models.BooleanField(default=False)  # ADD THIS MISSING FIELD
     state = models.CharField(max_length=20, choices=STATES_CHOICES)
     local_government = models.CharField(max_length=255)
-    tracker_id = models.CharField(max_length=255, unique=True, null=True, blank=True)  # Assigned by admin
-    activated = models.BooleanField(default=False)  # New activation status field
+    tracker_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     activation_payment = models.ForeignKey('payment.Payment', null=True, blank=True, on_delete=models.SET_NULL, related_name='activated_truck')
-
+    activated_at = models.DateTimeField(null=True, blank=True)
+    activated_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='activated_trucks')
+    
+    # Add activation method to track payment vs manual activation
+    ACTIVATION_CHOICES = [
+        ('payment', 'Payment Activation'),
+        ('manual', 'Manual Activation'),
+    ]
+    activation_method = models.CharField(
+        max_length=10, 
+        choices=ACTIVATION_CHOICES, 
+        null=True, 
+        blank=True
+    )
+    
     def __str__(self):
         return f"{self.name} ({self.owner.username})"
     
@@ -49,8 +65,85 @@ class Truck(models.Model):
             raise ValidationError("A truck must have exactly 3 images.")
         
     def is_activation_paid(self):
-        return self.activated and self.activation_payment and self.activation_payment.verified
-
+        """Check if activation was paid for"""
+        return (
+            self.activated and 
+            self.activation_payment and 
+            self.activation_payment.verified and
+            self.activation_method == 'payment'
+        )
+    
+    def can_be_activated(self):
+        """Check if truck meets activation criteria"""
+        return (
+            not self.activated and 
+            self.images.count() == 3 and
+            self.name and 
+            self.weight_range and 
+            self.state and 
+            self.local_government
+        )
+    
+    def activate_truck(self, user=None, tracker_id=None, activation_method='manual'):
+        """Activate truck (admin function or payment)"""
+        if self.activated:
+            return False, "Truck is already activated"
+            
+        if activation_method == 'payment' and not self.can_be_activated():
+            return False, "Truck doesn't meet activation criteria"
+            
+        self.activated = True
+        self.activated_at = timezone.now()
+        if user:
+            self.activated_by = user
+        if tracker_id:
+            self.tracker_id = tracker_id
+        self.activation_method = activation_method
+        self.save()
+        return True, "Truck activated successfully"
+    
+    def activate_via_payment(self, payment, user=None):
+        """Special method for payment-based activation"""
+        if self.activated:
+            return False, "Truck is already activated"
+            
+        # For payment activation, we don't require all criteria to be met immediately
+        # The truck might need inspection after payment
+        self.activated = True
+        self.activated_at = timezone.now()
+        if user:
+            self.activated_by = user
+        self.activation_payment = payment
+        self.activation_method = 'payment'
+        self.save()
+        return True, "Truck activated via payment"
+    
+    def deactivate_truck(self):
+        """Deactivate truck (admin function)"""
+        if not self.activated:
+            return False, "Truck is not activated"
+            
+        self.activated = False
+        self.activated_at = None
+        self.activated_by = None
+        self.activation_method = None
+        # Don't reset activation_payment to maintain payment history
+        self.available = False  # Also make unavailable when deactivating
+        self.save()
+        return True, "Truck deactivated successfully"
+    
+    def get_activation_status_display(self):
+        """Get display text for activation status"""
+        if not self.activated:
+            return "Not Activated"
+        
+        if self.activation_method == 'payment':
+            return "Activated via Payment"
+        elif self.activation_method == 'manual':
+            return "Manually Activated by Admin"
+        else:
+            return "Activated"
+    
     def delete(self, *args, **kwargs):
         # Delete all associated images from Cloudinary first
         for image in self.images.all():
@@ -63,8 +156,7 @@ class Truck(models.Model):
         
         # Then delete the truck instance
         super().delete(*args, **kwargs)
-
-
+        
 
 class TruckImage(models.Model):
     truck = models.ForeignKey(Truck, on_delete=models.CASCADE, related_name="images")

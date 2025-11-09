@@ -6,7 +6,6 @@
 <section class="breadcrumbs">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-            
             <ol>
                 <li><a href="#">Home</a></li>
                 <li>Truck Details</li>
@@ -18,39 +17,122 @@
 
 {% block main-content %}   
 <br> 
-<div>
+<div class="d-flex justify-content-between align-items-center">
     <h1>Truck Details: {{ truck.name }}</h1>
+    <div>
+        {% if not truck.activated %}
+            <form method="post" action="{% url 'admin_truck_activate' truck.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Activate</button>
+            </form>
+        {% else %}
+            <form method="post" action="{% url 'admin_truck_deactivate' truck.id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Deactivate</button>
+            </form>
+        {% endif %}
+    </div>
 </div>
 <br>
 <hr>
 
-<div class="card mb-4">
-    <div class="card-header text-warning">
-        <strong>Truck Owner:</strong> {{ truck.owner.username }}
+<div class="row">
+    <div class="col-md-6">
+        <!-- Add activation method information in the card -->
+        <div class="card mb-4">
+            <div class="card-header text-dark">
+                <strong>Truck Information</strong>
+            </div>
+            <div class="card-body text-dark">
+                <p><strong>Owner:</strong> {{ truck.owner.username }}</p>
+                <p><strong>Weight Range:</strong> {{ truck.get_weight_range_display }}</p>
+                <p><strong>State:</strong> {{ truck.state }}</p>
+                <p><strong>Local Government:</strong> {{ truck.local_government }}</p>
+                <p><strong>Tracker ID:</strong> {{ truck.tracker_id|default:"Not assigned" }}</p>
+                <p>
+                    <strong>Activated:</strong> 
+                    {% if truck.activated %}
+                        <span class="badge bg-success">Yes</span>
+                        <br><strong>Method:</strong> {{ truck.get_activation_status_display }}
+                        {% if truck.activated_at %}
+                            <br><small>Activated on: {{ truck.activated_at|date:"M d, Y H:i" }}</small>
+                        {% endif %}
+                        {% if truck.activated_by %}
+                            <br><small>By: {{ truck.activated_by.username }}</small>
+                        {% endif %}
+                        {% if truck.is_activation_paid %}
+                            <br><small class="text-success">✓ Payment Verified</small>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-warning">No</span>
+                    {% endif %}
+                </p>
+                <p>
+                    <strong>Available:</strong> 
+                    {% if truck.available %}
+                        <span class="badge bg-success">Yes</span>
+                    {% else %}
+                        <span class="badge bg-warning">No</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <p class="text-warning"><strong>Weight Range:</strong> {{ truck.get_weight_range_display }}</p>
-        <p class="text-warning"><strong>State:</strong> {{ truck.state }}</p>
-        <p class="text-warning"><strong>Available:</strong> {{ truck.available }}</p>
-        {% if images %}
-            {% for image in images %}
-                <img src="{{ image.image.url }}" alt="{{ truck.name }}" class="img-fluid" width="100">
-            {% endfor %}
-        {% else %}
-            <img src="{% static 'assets/img/service-44.jpg' %}" class="truck-img" alt="Default Truck">
-        {% endif %}
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-dark">
+                <strong>Truck Images</strong>
+            </div>
+            <div class="card-body text-dark">
+                {% if images %}
+                    <div class="row">
+                        {% for image in images %}
+                            <div class="col-4">
+                                <img src="{{ image.image.url }}" alt="{{ truck.name }}" class="img-fluid img-thumbnail">
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <img src="{% static 'assets/img/service-44.jpg' %}" class="img-fluid" alt="Default Truck">
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="tracker_id">Tracker ID:</label>
-        <input type="text" id="tracker_id" name="tracker_id" class="form-control" required>
+<!-- Action Forms -->
+<div class="card mt-4">
+    <div class="card-header text-dark">
+        <strong>Manage Truck</strong>
     </div>
-    <button type="submit" name="action" value="approve" class="btn btn-success">Approve Truck</button>
-    <button type="submit" name="action" value="reject" class="btn btn-danger">Reject Truck</button>
-    <a href="{% url 'admin_truck_list' %}" class="btn btn-secondary">Back to List</a>
-</form>
+    <div class="card-body text-dark">
+        <!-- Approval Form -->
+        <form method="post" class="mb-3">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="tracker_id">Tracker ID:</label>
+                <input type="text" id="tracker_id" name="tracker_id" class="form-control" value="{{ truck.tracker_id|default:'' }}" required>
+            </div>
+            <div class="btn-group" role="group">
+                <button type="submit" name="action" value="approve" class="btn btn-success">
+                    {% if truck.available %}Update{% else %}Approve{% endif %} Truck
+                </button>
+                {% if not truck.activated %}
+                    <button type="submit" name="action" value="activate" class="btn btn-primary">Activate Only</button>
+                {% else %}
+                    <button type="submit" name="action" value="deactivate" class="btn btn-warning">Deactivate Only</button>
+                {% endif %}
+                <button type="submit" name="action" value="reject" class="btn btn-danger" onclick="return confirm('Are you sure you want to reject and delete this truck?')">Reject & Delete</button>
+            </div>
+        </form>
+        
+        <!-- Quick Actions -->
+        <div class="mt-3">
+            <a href="{% url 'admin_truck_edit' truck.id %}" class="btn btn-outline-primary">Edit Truck</a>
+            <a href="{% url 'admin_truck_list' %}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

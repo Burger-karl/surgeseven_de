@@ -8,7 +8,7 @@ from django.http import JsonResponse, Http404
 from django.contrib import messages
 from django.core.paginator import Paginator
 from decimal import Decimal, InvalidOperation
-from .forms import TruckForm, BookingForm, TruckApprovalForm, TruckImageForm, AdminBookingForm, TruckEditForm
+from .forms import TruckForm, BookingForm, TruckActivationForm, TruckDeactivationForm, TruckApprovalForm, TruckImageForm, AdminBookingForm, TruckEditForm
 from .models import Truck, Booking, TruckImage
 from subscriptions.models import UserSubscription, SubscriptionPlan
 from users.models import ReferralBonus, Referral, User
@@ -397,60 +397,242 @@ class AvailableTruckListView(ListView):
 
 # ADMIN
 
-# Admin Truck List View with Pagination
+
+# booking/views.py - Fix the AdminTruckListView
+
 @method_decorator(admin_required, name='dispatch')
 class AdminTruckListView(View):
     template_name = 'booking/admin_truck_list.html'
     success_url = reverse_lazy('admin_truck_list')
 
-    # def get(self, request):
-    #     trucks = Truck.objects.filter(available=False).prefetch_related('images')
-    #     paginator = Paginator(trucks, 5)  # Show 5 trucks per page
-    #     page_number = request.GET.get('page')
-    #     page_obj = paginator.get_page(page_number)
-
-    #     form = TruckApprovalForm()
-    #     context = {
-    #         'page_obj': page_obj,
-    #         'form': form,
-    #     }
-    #     return render(request, self.template_name, context)
-    
     def get(self, request):
+        # Show trucks that are not available (both activated and non-activated)
+        trucks = Truck.objects.filter(available=False).prefetch_related('images')
         
-        trucks = Truck.objects.filter(
-            activated=True, 
-            available=False
-        ).prefetch_related('images')
+        # Add filter options
+        activation_filter = request.GET.get('activation_status', 'all')
+        if activation_filter == 'activated':
+            trucks = trucks.filter(activated=True)
+        elif activation_filter == 'not_activated':
+            trucks = trucks.filter(activated=False)
+        elif activation_filter == 'payment_activated':
+            trucks = trucks.filter(activated=True, activation_method='payment')
+        elif activation_filter == 'manual_activated':
+            trucks = trucks.filter(activated=True, activation_method='manual')
         
-        paginator = Paginator(trucks, 5)
+        paginator = Paginator(trucks, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
         form = TruckApprovalForm()
+        activation_form = TruckActivationForm()
+        deactivation_form = TruckDeactivationForm()
+        
         context = {
             'page_obj': page_obj,
             'form': form,
+            'activation_form': activation_form,
+            'deactivation_form': deactivation_form,
+            'activation_filter': activation_filter,
         }
         return render(request, self.template_name, context)
 
     def post(self, request):
+        action = request.POST.get('action')
+        
+        if action == 'approve_trucks':
+            return self._handle_truck_approval(request)
+        elif action == 'activate_trucks':
+            return self._handle_truck_activation(request)
+        elif action == 'deactivate_trucks':
+            return self._handle_truck_deactivation(request)
+        else:
+            messages.error(request, 'Invalid action.')
+            return redirect(self.success_url)
+
+    def _handle_truck_approval(self, request):
         form = TruckApprovalForm(request.POST)
         if form.is_valid():
             truck_ids = form.cleaned_data.get('truck_ids')
-            tracker_id = form.cleaned_data.get('tracker_id')  # Get tracker ID from the form
+            tracker_id = form.cleaned_data.get('tracker_id')
+            activate_trucks = form.cleaned_data.get('activate_trucks', False)
+            
             if truck_ids and tracker_id:
-                # Update trucks and assign tracker ID
-                updated_count = Truck.objects.filter(id__in=truck_ids).update(available=True, tracker_id=tracker_id)
-                messages.success(request, f'{updated_count} truck(s) have been approved and assigned tracker ID: {tracker_id}.')
+                updated_count = 0
+                with transaction.atomic():
+                    for truck_id in truck_ids:
+                        try:
+                            truck = Truck.objects.get(id=truck_id)
+                            truck.available = True
+                            truck.tracker_id = tracker_id
+                            if activate_trucks and not truck.activated:
+                                success, message = truck.activate_truck(
+                                    user=request.user, 
+                                    tracker_id=tracker_id,
+                                    activation_method='manual'
+                                )
+                                if not success:
+                                    logger.warning(f"Failed to activate truck {truck_id}: {message}")
+                            truck.save()
+                            updated_count += 1
+                        except Truck.DoesNotExist:
+                            continue
+                        except Exception as e:
+                            logger.error(f"Error approving truck {truck_id}: {str(e)}")
+                            continue
+                
+                messages.success(
+                    request, 
+                    f'{updated_count} truck(s) have been approved and {"activated" if activate_trucks else "marked as available"}.'
+                )
             else:
                 messages.warning(request, 'No trucks were selected for approval or tracker ID is missing.')
         else:
             messages.error(request, 'Invalid form submission.')
-        return redirect(self.success_url)    
+        return redirect(self.success_url)
+
+    def _handle_truck_activation(self, request):
+        form = TruckActivationForm(request.POST)
+        if form.is_valid():
+            truck_ids = form.cleaned_data.get('truck_ids')
+            tracker_id = form.cleaned_data.get('tracker_id')
+            
+            if truck_ids:
+                activated_count = 0
+                failed_activations = []
+                
+                with transaction.atomic():
+                    for truck_id in truck_ids:
+                        try:
+                            truck = Truck.objects.get(id=truck_id)
+                            if not truck.activated:
+                                success, message = truck.activate_truck(
+                                    user=request.user, 
+                                    tracker_id=tracker_id,
+                                    activation_method='manual'
+                                )
+                                if success:
+                                    activated_count += 1
+                                else:
+                                    failed_activations.append(f"{truck.name}: {message}")
+                            else:
+                                failed_activations.append(f"{truck.name}: Already activated")
+                        except Truck.DoesNotExist:
+                            failed_activations.append(f"Truck ID {truck_id}: Not found")
+                        except Exception as e:
+                            logger.error(f"Error activating truck {truck_id}: {str(e)}")
+                            failed_activations.append(f"{truck.name}: Activation error")
+                
+                if activated_count > 0:
+                    messages.success(request, f'{activated_count} truck(s) activated successfully.')
+                if failed_activations:
+                    # Show only first 5 errors to avoid message overflow
+                    error_message = 'Some trucks could not be activated: ' + ', '.join(failed_activations[:5])
+                    if len(failed_activations) > 5:
+                        error_message += f' ... and {len(failed_activations) - 5} more'
+                    messages.warning(request, error_message)
+            else:
+                messages.warning(request, 'No trucks were selected for activation.')
+        else:
+            # Form validation failed - show specific errors
+            error_messages = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_messages.append(f"{field}: {error}")
+            messages.error(request, f'Form errors: {", ".join(error_messages)}')
+        return redirect(self.success_url)
+
+    def _handle_truck_deactivation(self, request):
+        form = TruckDeactivationForm(request.POST)
+        if form.is_valid():
+            truck_ids = form.cleaned_data.get('truck_ids')
+            reason = form.cleaned_data.get('reason', 'No reason provided')
+            
+            if truck_ids:
+                deactivated_count = 0
+                failed_deactivations = []
+                
+                with transaction.atomic():
+                    for truck_id in truck_ids:
+                        try:
+                            truck = Truck.objects.get(id=truck_id)
+                            if truck.activated:
+                                success, message = truck.deactivate_truck()
+                                if success:
+                                    deactivated_count += 1
+                                    # Log the deactivation reason
+                                    logger.info(f"Truck {truck.id} deactivated by {request.user.username}. Reason: {reason}")
+                                else:
+                                    failed_deactivations.append(f"{truck.name}: {message}")
+                            else:
+                                failed_deactivations.append(f"{truck.name}: Not activated")
+                        except Truck.DoesNotExist:
+                            failed_deactivations.append(f"Truck ID {truck_id}: Not found")
+                        except Exception as e:
+                            logger.error(f"Error deactivating truck {truck_id}: {str(e)}")
+                            failed_deactivations.append(f"{truck.name}: Deactivation error")
+                
+                if deactivated_count > 0:
+                    messages.success(request, f'{deactivated_count} truck(s) deactivated successfully.')
+                if failed_deactivations:
+                    # Show only first 5 errors to avoid message overflow
+                    error_message = 'Some trucks could not be deactivated: ' + ', '.join(failed_deactivations[:5])
+                    if len(failed_deactivations) > 5:
+                        error_message += f' ... and {len(failed_deactivations) - 5} more'
+                    messages.warning(request, error_message)
+            else:
+                messages.warning(request, 'No trucks were selected for deactivation.')
+        else:
+            # Form validation failed - show specific errors
+            error_messages = []
+            for field, errors in form.errors.items():
+                for error in errors:
+                    error_messages.append(f"{field}: {error}")
+            messages.error(request, f'Form errors: {", ".join(error_messages)}')
+        return redirect(self.success_url)
+
+
+# Add individual truck activation/deactivation views
+@method_decorator(admin_required, name='dispatch')
+class AdminTruckActivationView(View):
+    def post(self, request, pk):
+        truck = get_object_or_404(Truck, pk=pk)
+        
+        if truck.activated:
+            messages.info(request, f'Truck "{truck.name}" is already activated.')
+            return redirect('admin_truck_detail', pk=pk)
+        
+        if not truck.can_be_activated():
+            messages.error(request, f'Truck "{truck.name}" doesn\'t meet activation criteria.')
+            return redirect('admin_truck_detail', pk=pk)
+        
+        success, message = truck.activate_truck(request.user)
+        if success:
+            messages.success(request, f'Truck "{truck.name}" activated successfully.')
+        else:
+            messages.error(request, f'Failed to activate truck: {message}')
+        
+        return redirect('admin_truck_detail', pk=pk)
+
+@method_decorator(admin_required, name='dispatch')
+class AdminTruckDeactivationView(View):
+    def post(self, request, pk):
+        truck = get_object_or_404(Truck, pk=pk)
+        
+        if not truck.activated:
+            messages.info(request, f'Truck "{truck.name}" is not activated.')
+            return redirect('admin_truck_detail', pk=pk)
+        
+        success, message = truck.deactivate_truck()
+        if success:
+            messages.success(request, f'Truck "{truck.name}" deactivated successfully.')
+        else:
+            messages.error(request, f'Failed to deactivate truck: {message}')
+        
+        return redirect('admin_truck_detail', pk=pk)    
     
-    
-# Admin Truck Detail View
+
+
 @method_decorator(admin_required, name='dispatch')
 class AdminTruckDetailView(View):
     template_name = 'booking/admin_truck_detail.html'
@@ -468,26 +650,60 @@ class AdminTruckDetailView(View):
     def post(self, request, pk):
         truck = get_object_or_404(Truck, pk=pk)
         action = request.POST.get('action')
-        tracker_id = request.POST.get('tracker_id')  # Get tracker ID from the form
+        tracker_id = request.POST.get('tracker_id')
 
         if action == 'approve':
             if not tracker_id:
                 messages.error(request, 'Tracker ID is required to approve the truck.')
                 return redirect('admin_truck_detail', pk=pk)
 
-            # Assign tracker ID and mark as available
+            # Update truck status
             truck.tracker_id = tracker_id
             truck.available = True
+            if not truck.activated:
+                success, message = truck.activate_truck(
+                    user=request.user, 
+                    tracker_id=tracker_id,
+                    activation_method='manual'
+                )
+                if not success:
+                    messages.warning(request, f'Truck approved but activation failed: {message}')
             truck.save()
-            messages.success(request, f'Truck "{truck.name}" has been approved and assigned tracker ID: {tracker_id}.')
+            
+            messages.success(
+                request, 
+                f'Truck "{truck.name}" has been approved and activated.'
+            )
+        elif action == 'activate':
+            if truck.activated:
+                messages.info(request, f'Truck "{truck.name}" is already activated.')
+            else:
+                success, message = truck.activate_truck(
+                    user=request.user, 
+                    tracker_id=tracker_id,
+                    activation_method='manual'
+                )
+                if success:
+                    messages.success(request, f'Truck "{truck.name}" has been activated.')
+                else:
+                    messages.error(request, f'Failed to activate truck: {message}')
+        elif action == 'deactivate':
+            if not truck.activated:
+                messages.info(request, f'Truck "{truck.name}" is not activated.')
+            else:
+                success, message = truck.deactivate_truck()
+                if success:
+                    messages.success(request, f'Truck "{truck.name}" has been deactivated.')
+                else:
+                    messages.error(request, f'Failed to deactivate truck: {message}')
         elif action == 'reject':
             truck.delete()
             messages.success(request, f'Truck "{truck.name}" has been rejected and removed.')
         else:
             messages.error(request, 'Invalid action.')
+        
         return redirect(self.success_url)
-
-
+    
 
 @method_decorator(admin_required, name='dispatch')
 class AdminAllTrucksListView(ListView):

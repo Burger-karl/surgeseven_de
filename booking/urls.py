@@ -3,7 +3,7 @@ from .views import (
     TruckCreateView, TruckListView, BookingCreateView, BookingListView, AvailableTruckListView,
     GenerateReceiptView, BookingUpdateView, AdminBookingCreateView, InsuranceReceiptView,
     AdminTruckListView, AdminTruckDetailView, BookingWithUpdatedCostView, BookingAdminListView,
-    AdminAllTrucksListView, AdminTruckEditView, AdminTruckDeleteView,
+    AdminAllTrucksListView, AdminTruckEditView, AdminTruckDeleteView, AdminTruckActivationView, AdminTruckDeactivationView
 )
 
 urlpatterns = [
@@ -26,4 +26,6 @@ urlpatterns = [
     path('admin/bookings/', BookingAdminListView.as_view(), name='admin-booking-list'),
     path('bookings/updated-cost/', BookingWithUpdatedCostView.as_view(), name='updated_cost_booking_list'),
     path('admin/create/', AdminBookingCreateView.as_view(), name='admin_booking_create'),
+    path('admin/trucks/<int:pk>/activate/', AdminTruckActivationView.as_view(), name='admin_truck_activate'),
+    path('admin/trucks/<int:pk>/deactivate/', AdminTruckDeactivationView.as_view(), name='admin_truck_deactivate'),
 ]

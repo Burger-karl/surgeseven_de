@@ -9,7 +9,7 @@ from django.urls import reverse_lazy, reverse
 from .forms import RegisterForm, LoginForm, OTPForm, ForgotPasswordForm, ResetPasswordForm, ProfileForm, AdminUserCreationForm
 from .models import User, OTP, PasswordResetToken, Profile, Referral
 from subscriptions.models import SubscriptionPlan, UserSubscription
-from .emails import send_otp_email, send_welcome_email
+from .emails import send_otp_email, send_welcome_email, send_password_reset_email
 from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
@@ -336,7 +336,7 @@ class ForgotPasswordView(View):
                 reverse('reset-password', kwargs={'token': token.token})
             )
             
-            send_mail(
+            send_password_reset_email(
                 'Password Reset Request',
                 f'Click this link to reset your password: {reset_link}\n\n'
                 f'The link will expire in 1 hour.',
