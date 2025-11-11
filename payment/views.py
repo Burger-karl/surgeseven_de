@@ -9,60 +9,256 @@ from django.contrib.auth.decorators import login_required
 import uuid
 from django.contrib import messages
 from booking.models import Booking, Truck
+import logging
+import hashlib
+import hmac
+import json
+import requests
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.db import transaction
+from django.core.mail import mail_admins
+
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 
+class PaymentProcessor:
+    @staticmethod
+    def safe_verify_transaction(reference, max_retries=3):
+        """
+        Safely verify transaction with retry logic and comprehensive logging
+        """
+        for attempt in range(max_retries):
+            try:
+                response = paystack_client.verify_transaction(reference)
+                
+                if response.get('status'):
+                    transaction_data = response['data']
+                    
+                    logger.info(
+                        f"Transaction verification successful - "
+                        f"Reference: {reference}, "
+                        f"Amount: {transaction_data.get('amount')}, "
+                        f"Status: {transaction_data.get('status')}"
+                    )
+                    
+                    return {
+                        'success': True,
+                        'data': transaction_data,
+                        'message': 'Verification successful'
+                    }
+                else:
+                    logger.warning(
+                        f"Transaction verification failed - "
+                        f"Reference: {reference}, "
+                        f"Attempt: {attempt + 1}, "
+                        f"Error: {response.get('message')}"
+                    )
+                    
+                    if attempt == max_retries - 1:
+                        return {
+                            'success': False,
+                            'error': response.get('message', 'Verification failed'),
+                            'should_retry': False
+                        }
+                    
+            except requests.exceptions.RequestException as e:
+                logger.error(
+                    f"Network error during verification - "
+                    f"Reference: {reference}, "
+                    f"Attempt: {attempt + 1}, "
+                    f"Error: {str(e)}"
+                )
+                
+                if attempt == max_retries - 1:
+                    return {
+                        'success': False,
+                        'error': 'Network error during verification',
+                        'should_retry': True
+                    }
+    
+    @staticmethod
+    def monitor_payment_health():
+        """
+        Monitor payment system health and send alerts for issues
+        """
+        from django.utils import timezone
+        from .models import Payment
+        
+        failed_payments = Payment.objects.filter(
+            verified=False,
+            created_at__gte=timezone.now() - timezone.timedelta(hours=1)
+        ).count()
+        
+        if failed_payments > 10:  # Threshold for alerts
+            mail_admins(
+                'High Payment Failure Rate',
+                f'Detected {failed_payments} failed payments in the last hour.'
+            )
+
+# paystack_client = PaystackClient()
+
+# @login_required
+# def create_subscription_payment(request, plan_id):
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+#     user = request.user
+#     amount = int(plan.price * 100)  # Paystack expects amount in kobo (1 Naira = 100 kobo)
+#     email = user.email
+#     subscription_code = str(uuid.uuid4())  # Generate a unique subscription code
+
+#     # Create a UserSubscription with an initial status
+#     user_subscription = UserSubscription.objects.create(
+#         user=user,
+#         plan=plan,
+#         start_date=timezone.now(),
+#         end_date=timezone.now() + plan.duration,
+#         is_active=False,
+#         payment_completed=False,
+#         subscription_status='pending',
+#         subscription_code=subscription_code
+#     )
+
+#     # Build the callback URL using the generated subscription code
+#     callback_url = request.build_absolute_uri(reverse('verify-payment', kwargs={'ref': subscription_code}))
+
+#     # Initialize Paystack transaction
+#     response = paystack_client.initialize_transaction(email, amount, subscription_code, callback_url)
+
+#     if response['status']:
+#         return redirect(response['data']['authorization_url'])
+#     else:
+#         return render(request, 'subscriptions/subscribe.html', {'plan': plan, 'error': 'Payment initialization failed.'})
+
+
+
+# @login_required
+# def verify_payment(request, ref):
+#     # Verify the payment with Paystack using the reference
+#     response = paystack_client.verify_transaction(ref)
+
+#     if response['status'] and response['data']['status'] == 'success':
+#         # Update the subscription status or perform other actions
+#         user_subscription = UserSubscription.objects.get(subscription_code=ref)
+#         user_subscription.payment_completed = True
+#         user_subscription.is_active = True
+#         user_subscription.subscription_status = 'active'
+#         user_subscription.save()
+#         return redirect('user-subscriptions')
+#     else:
+#         return render(request, 'subscriptions/subscribe.html', {'error': 'Payment verification failed.'})
+
+
+# views.py
+import logging
+from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
+from django.conf import settings
+from django.utils import timezone
+from .paystack_client import PaystackClient
+from .models import Payment
+from subscriptions.models import SubscriptionPlan, UserSubscription
+from django.contrib.auth.decorators import login_required
+import uuid
+from django.contrib import messages
+from booking.models import Booking, Truck
+
+logger = logging.getLogger(__name__)
+
+# Initialize Paystack client
 paystack_client = PaystackClient()
+
 
 @login_required
 def create_subscription_payment(request, plan_id):
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-    user = request.user
-    amount = int(plan.price * 100)  # Paystack expects amount in kobo (1 Naira = 100 kobo)
-    email = user.email
-    subscription_code = str(uuid.uuid4())  # Generate a unique subscription code
+    try:
+        plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+        user = request.user
+        
+        # Validate amount
+        if plan.price <= 0:
+            messages.error(request, 'Invalid subscription amount.')
+            return redirect('subscription-plans')
+            
+        amount = int(plan.price * 100)  # Paystack expects amount in kobo
+        email = user.email
+        subscription_code = str(uuid.uuid4())
 
-    # Create a UserSubscription with an initial status
-    user_subscription = UserSubscription.objects.create(
-        user=user,
-        plan=plan,
-        start_date=timezone.now(),
-        end_date=timezone.now() + plan.duration,
-        is_active=False,
-        payment_completed=False,
-        subscription_status='pending',
-        subscription_code=subscription_code
-    )
+        # Create a UserSubscription with an initial status
+        user_subscription = UserSubscription.objects.create(
+            user=user,
+            plan=plan,
+            start_date=timezone.now(),
+            end_date=timezone.now() + plan.duration,
+            is_active=False,
+            payment_completed=False,
+            subscription_status='pending',
+            subscription_code=subscription_code
+        )
 
-    # Build the callback URL using the generated subscription code
-    callback_url = request.build_absolute_uri(reverse('verify-payment', kwargs={'ref': subscription_code}))
+        # ALSO create a Payment record for webhook processing
+        from .models import Payment
+        Payment.objects.create(
+            user=user,
+            amount=amount,
+            ref=subscription_code,
+            email=email,
+            verified=False,
+            payment_type=Payment.SUBSCRIPTION
+        )
 
-    # Initialize Paystack transaction
-    response = paystack_client.initialize_transaction(email, amount, subscription_code, callback_url)
+        # Build the callback URL
+        callback_url = request.build_absolute_uri(
+            reverse('verify-payment', kwargs={'ref': subscription_code})
+        )
 
-    if response['status']:
-        return redirect(response['data']['authorization_url'])
-    else:
-        return render(request, 'subscriptions/subscribe.html', {'plan': plan, 'error': 'Payment initialization failed.'})
+        # Initialize Paystack transaction
+        response = paystack_client.initialize_transaction(email, amount, subscription_code, callback_url)
 
-
+        if response.get('status'):
+            return redirect(response['data']['authorization_url'])
+        else:
+            user_subscription.delete()  # Clean up failed subscription
+            # Also delete the payment record
+            Payment.objects.filter(ref=subscription_code).delete()
+            
+            error_msg = response.get('message', 'Payment initialization failed.')
+            messages.error(request, error_msg)
+            return redirect('subscription-plans')
+            
+    except Exception as e:
+        logger.error(f"Subscription payment error: {str(e)}")
+        messages.error(request, 'An error occurred while processing your payment.')
+        return redirect('subscription-plans')
+    
 
 @login_required
 def verify_payment(request, ref):
-    # Verify the payment with Paystack using the reference
-    response = paystack_client.verify_transaction(ref)
+    try:
+        # Verify the payment with Paystack
+        response = paystack_client.verify_transaction(ref)
 
-    if response['status'] and response['data']['status'] == 'success':
-        # Update the subscription status or perform other actions
-        user_subscription = UserSubscription.objects.get(subscription_code=ref)
-        user_subscription.payment_completed = True
-        user_subscription.is_active = True
-        user_subscription.subscription_status = 'active'
-        user_subscription.save()
-        return redirect('user-subscriptions')
-    else:
-        return render(request, 'subscriptions/subscribe.html', {'error': 'Payment verification failed.'})
-
+        if response.get('status') and response['data'].get('status') == 'success':
+            user_subscription = UserSubscription.objects.get(subscription_code=ref)
+            user_subscription.payment_completed = True
+            user_subscription.is_active = True
+            user_subscription.subscription_status = 'active'
+            user_subscription.save()
+            
+            messages.success(request, 'Subscription activated successfully!')
+            return redirect('user-subscriptions')
+        else:
+            error_msg = response.get('message', 'Payment verification failed.')
+            messages.error(request, error_msg)
+            return redirect('subscription-plans')
+            
+    except UserSubscription.DoesNotExist:
+        messages.error(request, 'Subscription not found.')
+        return redirect('subscription-plans')
+    except Exception as e:
+        logger.error(f"Payment verification error: {str(e)}")
+        messages.error(request, 'An error occurred while verifying your payment.')
+        return redirect('subscription-plans')
 
 
 from django.urls import reverse

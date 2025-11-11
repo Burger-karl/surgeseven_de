@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .paystack_webhooks import paystack_webhook
 
 
 urlpatterns = [
@@ -11,6 +12,8 @@ urlpatterns = [
 
     path('truck/activate/<int:truck_id>/', views.CreateTruckActivationPaymentView.as_view(), name='activate-truck'),
     path('truck/activate/verify/<str:ref>/', views.VerifyTruckActivationPaymentView.as_view(), name='verify-truck-activation-payment'),
+
+    path('webhook/', paystack_webhook, name='paystack-webhook'),
 
     # WITHDRAWAL
     path('withdraw/', views.WithdrawalView.as_view(), name='withdraw'),

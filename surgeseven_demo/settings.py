@@ -87,6 +87,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'payment.middleware.PaystackIPWhitelistMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -153,11 +154,27 @@ DATABASES = {
 }
 
 
-# Paystack configuration
-PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
+# Paystack Configuration
+PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY', '')
+PAYSTACK_PUBLIC_KEY = os.getenv('PAYSTACK_PUBLIC_KEY', '')
+
+# Ensure these are set in production
+if not PAYSTACK_SECRET_KEY and not DEBUG:
+    raise ValueError("PAYSTACK_SECRET_KEY must be set in production")
+
+# Webhook URL (configure this in your Paystack dashboard)
+PAYSTACK_WEBHOOK_URL = 'https://surgesevenltd.com/paystack/webhook/'
+
+# Security settings for production
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 
 # Resend Configuration
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
@@ -323,3 +340,36 @@ QR_CODE_BACK_COLOR = 'white'
 
 # Site configuration
 SITE_URL = 'https://surgesevenltd.com'
+
+# Logging configuration [citation:2]
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'detailed': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/var/log/payment/payments.log',
+            'maxBytes': 1024*1024*5,  # 5MB
+            'backupCount': 5,
+            'formatter': 'detailed',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'detailed',
+        },
+    },
+    'loggers': {
+        'payment': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
