@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /accounts/
+Disallow: /private/
+
+Sitemap: https://surgesevenltd.com/sitemap.xml

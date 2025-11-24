@@ -6,14 +6,74 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Surge Seven</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
-  <meta name="vapid-public-key" content="{{ VAPID_PUBLIC_KEY }}">
+  <title>{% block title %}Surge Seven - Logistics & Trucking Solutions{% endblock %}</title>
+  <meta name="description" content="{% block description %}Surge Seven provides reliable logistics, trucking, and delivery services. Book trucks, manage deliveries, and streamline your supply chain.{% endblock %}">
+  <meta name="keywords" content="{% block keywords %}logistics, trucking, delivery services, freight, supply chain, truck booking, Nigeria logistics{% endblock %}">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="Surge Seven">
+  <meta name="copyright" content="Surge Seven Ltd.">
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}Surge Seven - Logistics & Trucking Solutions{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Reliable logistics and trucking services for businesses. Book trucks, manage deliveries, and optimize your supply chain.{% endblock %}">
+  <meta property="og:image" content="{% static 'assets/img/surge-seven-social.jpg' %}">
+  <meta property="og:url" content="https://surgesevenltd.com">
+  <meta property="og:site_name" content="Surge Seven">
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}Surge Seven - Logistics & Trucking Solutions{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Reliable logistics and trucking services for businesses in Nigeria.{% endblock %}">
+  <meta name="twitter:image" content="{% static 'assets/img/surge-seven-social.png' %}">
+  <meta name="twitter:site" content="@surgeseven">
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://surgesevenltd.com{% block canonical_path %}{% endblock %}">
+  
+  <!-- Structured Data / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Surge Seven Ltd.",
+    "url": "https://surgesevenltd.com",
+    "logo": "https://surgesevenltd.com{% static 'assets/img/surge-seven1.png' %}",
+    "description": "Reliable logistics and trucking services provider",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "13 Lukulu Street",
+      "addressLocality": "Wuse Zone 3",
+      "addressRegion": "Abuja",
+      "addressCountry": "NG"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+234-701-888-4096",
+      "contactType": "customer service",
+      "areaServed": "NG",
+      "availableLanguage": "en"
+    },
+    "sameAs": [
+      "https://twitter.com/surgeseven",
+      "https://facebook.com/surgeseven",
+      "https://instagram.com/surgeseven",
+      "https://linkedin.com/company/surgeseven"
+    ]
+  }
+  </script>
 
+  <!-- Additional SEO Links -->
+  <link rel="sitemap" type="application/xml" href="{% url 'sitemap' %}">
+  <link rel="alternate" href="https://surgesevenltd.com" hreflang="en" />
+  
   <!-- Favicons -->
   <link href="{% static 'assets/img/surge-seven1.png' %}" rel="icon">
   <link href="{% static 'assets/img/surge-seven1.png' %}" rel="apple-touch-icon">
+  <link href="{% static 'assets/img/surge-seven1.png' %}" rel="icon" sizes="192x192">
+  <link href="{% static 'assets/img/surge-seven1.png' %}" rel="icon" sizes="512x512">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
@@ -28,64 +88,57 @@
   <link href="{% static 'assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"> -->
-
-
   <!-- Template Main CSS File -->
   <link href="{% static 'assets/css/style.css' %}" rel="stylesheet">
 
   <!-- Add webpush context -->
-    {{ webpush.extra }}
-    
-    <!-- Add push notification script -->
-    <script src="{% static 'assets/js/push.js' %}"></script>
-    
-    <!-- Add service worker registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register("{% static 'assets/js/serviceworker.js' %}");
-        }
-
-        // After getting push subscription
-        async function saveSubscription(subscription) {
-        const response = await fetch('/save-subscription/', {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            },
-            body: JSON.stringify(subscription),
-        });
-        return response.json();
-        }
-
-        // Usage example:
-        Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-            navigator.serviceWorker.ready.then(registration => {
-            registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: "YOUR_VAPID_PUBLIC_KEY"
-            }).then(subscription => {
-                saveSubscription(subscription);
-            });
-            });
-        }
-        });
-    </script>
-
-    
-
+  {{ webpush.extra }}
   
+  <!-- Add push notification script -->
+  <script src="{% static 'assets/js/push.js' %}"></script>
+  
+  <!-- Add service worker registration -->
+  <script>
+      if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register("{% static 'assets/js/serviceworker.js' %}");
+      }
+
+      // After getting push subscription
+      async function saveSubscription(subscription) {
+      const response = await fetch('/save-subscription/', {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'),
+          },
+          body: JSON.stringify(subscription),
+      });
+      return response.json();
+      }
+
+      // Usage example:
+      Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+          navigator.serviceWorker.ready.then(registration => {
+          registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: "YOUR_VAPID_PUBLIC_KEY"
+          }).then(subscription => {
+              saveSubscription(subscription);
+          });
+          });
+      }
+      });
+  </script>
 </head>
 
-<body>
+<body itemscope itemtype="https://schema.org/WebPage">
     <!-- ======= Top Bar ======= -->
     <div id="topbar" class="d-flex align-items-center fixed-top">
         <div class="container d-flex justify-content-center justify-content-md-between">
 
             <div class="contact-info d-flex align-items-center">
-                <i class="bi bi-phone d-flex align-items-center"><span>+234 701 888 4096</span></i>
+                <i class="bi bi-phone d-flex align-items-center"><span itemprop="telephone">+234 701 888 4096</span></i>
                 <i class="bi bi-clock d-flex align-items-center ms-4"><span> Mon-Sat: 8AM - 8PM</span></i>
             </div>
 
@@ -103,9 +156,9 @@
     <header id="header" class="fixed-top d-flex align-items-center">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-lg-between">
 
-            <!-- <h1 class="logo me-auto me-lg-0"><a href="index.html">Burger</a></h1> -->
-            <!-- Uncomment below if you prefer to use an image logo -->
-            <a href="#" class="logo me-auto me-lg-0"><img src="{% static 'assets/img/surge-seven-3.png' %}" alt="" class="img-fluid"></a>
+            <a href="{% url 'home' %}" class="logo me-auto me-lg-0" itemprop="url">
+                <img src="{% static 'assets/img/surge-seven-3.png' %}" alt="Surge Seven Logistics Company Logo" itemprop="logo" class="img-fluid">
+            </a>
 
             <!-- Notifications Icon (Mobile) - Visible only on mobile -->
             <div class="d-lg-none mobile-notifications">
@@ -272,14 +325,6 @@
                 <i class="bi bi-list mobile-nav-toggle"></i>
 
             </nav><!-- .navbar -->
-            <!-- <a href="">
-                <form method="post" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button class="book-a-table-btn dark scrollto d-none d-lg-flex" type="submit">Logout</button>
-                </form>
-            </a> -->
-            
-            <!-- <a href="{% url 'login' %}" class="book-a-table-btn scrollto d-none d-lg-flex">Login</a> -->
             
         </div>
     </header>
@@ -298,21 +343,11 @@
 
 
     <main id="main">
-
-    
         {% block banner-slider %}{% endblock banner-slider %}
         {% block information %}{% endblock information %}    
         {% block main-content %}{% endblock main-content %}
         {% block admin_content %}{% endblock admin_content %}
-    
-    
     </main>
-
-
-
-
-
-
 
     <!-- ======= Footer ======= -->
     <footer id="footer">
@@ -323,17 +358,18 @@
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-info">
                             <h3>SurgeSeven</h3>
-                            <p>
-                                13 Lukulu Street <br>
-                                Wuse Zone 3, Abuja.<br><br>
-                                <strong>Phone:</strong> +234 701 888 4096<br>
-                                <strong>Email:</strong> info@surgesevenltd.com<br>
+                            <p itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+                                <span itemprop="streetAddress">13 Lukulu Street</span><br>
+                                <span itemprop="addressLocality">Wuse Zone 3</span>, 
+                                <span itemprop="addressRegion">Abuja</span>.<br><br>
+                                <strong>Phone:</strong> <span itemprop="telephone">+234 701 888 4096</span><br>
+                                <strong>Email:</strong> <span itemprop="email">info@surgesevenltd.com</span><br>
                             </p>
                             <div class="social-links mt-3">
-                                <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
-                                <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>
-                                <a href="#" class="instagram"><i class="bx bxl-instagram"></i></a>
-                                <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>
+                                <a href="#" class="twitter" aria-label="Twitter"><i class="bx bxl-twitter"></i></a>
+                                <a href="#" class="facebook" aria-label="Facebook"><i class="bx bxl-facebook"></i></a>
+                                <a href="#" class="instagram" aria-label="Instagram"><i class="bx bxl-instagram"></i></a>
+                                <a href="#" class="linkedin" aria-label="LinkedIn"><i class="bx bxl-linkedin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -341,8 +377,8 @@
                     <div class="col-lg-2 col-md-6 footer-links">
                         <h4>Useful Links</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Home</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">About us</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}">Home</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="{% url 'about' %}">About us</a></li>
                             <li><i class="bx bx-chevron-right"></i> <a href="#">Privacy policy</a></li>
                         </ul>
                     </div>
@@ -350,19 +386,21 @@
                     <div class="col-lg-3 col-md-6 footer-links">
                         <h4>Our Services</h4>
                         <ul>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Booking</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Subscribe</a></li>
-                            <li><i class="bx bx-chevron-right"></i> <a href="#">Trucks</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="{% url 'available_trucks' %}">Truck Booking</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="{% url 'subscription-plans' %}">Subscription Plans</a></li>
+                            <li><i class="bx bx-chevron-right"></i> <a href="{% url 'truck_list' %}">Truck Management</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-4 col-md-6 footer-newsletter">
                         <h4>Our Newsletter</h4>
                         <p>Subscribe to our Newsletter and get firsthand information about SurgeSeven.</p>
+        
                         <form action="" method="post">
-                            <input type="email" name="email"><input type="submit" value="Subscribe">
+                            <input type="email" name="email" value="comingsoon@surgesevenltd.com" readonly>
+                            <input type="submit" value="Subscribe" disabled>
                         </form>
-
+                        
                     </div>
 
                 </div>
@@ -380,22 +418,8 @@
     </footer>
     <!--====== End Footer =======-->
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div id="preloader"></div>
-    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+    <a href="#" class="back-to-top d-flex align-items-center justify-content-center" aria-label="Back to top"><i class="bi bi-arrow-up-short"></i></a>
 
     <script>
         // Auto-dismiss alerts after 5 seconds
@@ -405,15 +429,13 @@
                 let alertInstance = new bootstrap.Alert(alertElement);
                 alertInstance.close();
             }
-        }, 5000); // 5000 milliseconds = 5 seconds
-
-        
+        }, 5000);
 
         // Initialize Bootstrap dropdowns
         var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
         var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
         return new bootstrap.Dropdown(dropdownToggleEl)
-        })
+        });
         
         // Mobile notifications toggle
         document.addEventListener('DOMContentLoaded', function() {
@@ -436,7 +458,6 @@
         });
     </script>
 
-    
     <!-- Vendor JS Files -->
     <script src="{% static 'assets/vendor/aos/aos.js' %}"></script>
     <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
@@ -447,11 +468,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"> -->
-
     <!-- Template Main JS File -->
     <script src="{% static 'assets/js/main.js' %}"></script>
     
 </body>
-
 </html>

@@ -52,8 +52,8 @@ class RegisterView(View):
         return render(request, self.template_name, {'form': form})
 
     def post(self, request, *args, **kwargs):
-        # Fixed rate limiting - use the correct function signature
-        if is_ratelimited(request, group='register', key='ip', rate='5/h', increment=True):
+        # Increased rate limiting - 20 attempts per hour
+        if is_ratelimited(request, group='register', key='ip', rate='20/h', increment=True):
             messages.error(request, "Too many registration attempts. Please try again in an hour.")
             form = self.form_class()
             return render(request, self.template_name, {'form': form})
@@ -97,7 +97,7 @@ class RegisterView(View):
                 return render(request, self.template_name, {'form': form})
                 
         return render(request, self.template_name, {'form': form})
-
+    
 
 class VerifyEmailView(FormView):
     form_class = OTPForm
