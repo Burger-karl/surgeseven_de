@@ -251,7 +251,7 @@
                         <a href="" class="nav-link dropdown-toggle" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ request.user.username }}</a>
                         <ul class="dropdown-menu" id="drop" aria-labelledby="profileDropdown">
                             <li><a href="{% url 'logout' %}" class="dropdown-item">Logout</a></li>
-                            <li><a href="{% url 'profile-create' %}" class="dropdown-item">Profile</a></li>
+                            <li><a href="{% url 'profile' %}" class="dropdown-item">Profile</a></li>
                             <li><a href="{% url 'client_dashboard' %}" class="dropdown-item">My Dashboard</a></li>
                         </ul>
                     </li>
