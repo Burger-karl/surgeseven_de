@@ -3,10 +3,131 @@
 
 {% block title %}Truck Tracking - {{ truck.name }}{% endblock %}
 
-{% block extra_css %}
-<!-- Add Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-{% endblock %}
+<style>
+    #map {
+        border-radius: 4px;
+    }
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .badge {
+        font-size: 0.85em;
+    }
+    .table th {
+        white-space: nowrap;
+    }
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Enhanced truck marker styles */
+    .truck-marker-container {
+        background: none;
+        border: none;
+    }
+    .truck-marker {
+        position: relative;
+        width: 40px;
+        height: 40px;
+    }
+    .truck-icon {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        background: #007bff;
+        border: 3px solid white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+    }
+    .truck-icon i {
+        color: white;
+        font-size: 14px;
+    }
+    .truck-pulse {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        background: #007bff;
+        border-radius: 50%;
+        opacity: 0.6;
+        animation: pulse 2s infinite;
+        z-index: 1;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.6;
+        }
+        70% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+        }
+        100% {
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+        }
+    }
+    
+    /* Loading spinner */
+    #loading-spinner {
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .card-body.p-0 {
+            height: 300px !important;
+        }
+        .btn-group .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .truck-marker {
+            width: 32px;
+            height: 32px;
+        }
+        .truck-icon {
+            width: 24px;
+            height: 24px;
+        }
+        .truck-icon i {
+            font-size: 12px;
+        }
+        .truck-pulse {
+            width: 32px;
+            height: 32px;
+        }
+    }
+    
+    /* Leaflet control adjustments */
+    .leaflet-top, .leaflet-bottom {
+        z-index: 400;
+    }
+    .leaflet-control-geocoder {
+        border-radius: 4px;
+    }
+    
+    /* Custom popup styles */
+    .leaflet-popup-content {
+        margin: 12px 15px;
+        min-width: 200px;
+    }
+</style>
+
+
 
 {% block banner-slider %}
 <section class="breadcrumbs">
@@ -474,127 +595,4 @@ window.addEventListener('beforeunload', () => {
 });
 </script>
 
-<style>
-    #map {
-        border-radius: 4px;
-    }
-    .card {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        border: 1px solid rgba(0, 0, 0, 0.125);
-    }
-    .badge {
-        font-size: 0.85em;
-    }
-    .table th {
-        white-space: nowrap;
-    }
-    .table-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Enhanced truck marker styles */
-    .truck-marker-container {
-        background: none;
-        border: none;
-    }
-    .truck-marker {
-        position: relative;
-        width: 40px;
-        height: 40px;
-    }
-    .truck-icon {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 30px;
-        height: 30px;
-        background: #007bff;
-        border: 3px solid white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        z-index: 2;
-    }
-    .truck-icon i {
-        color: white;
-        font-size: 14px;
-    }
-    .truck-pulse {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        background: #007bff;
-        border-radius: 50%;
-        opacity: 0.6;
-        animation: pulse 2s infinite;
-        z-index: 1;
-    }
-    
-    @keyframes pulse {
-        0% {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 0.6;
-        }
-        70% {
-            transform: translate(-50%, -50%) scale(1.5);
-            opacity: 0;
-        }
-        100% {
-            transform: translate(-50%, -50%) scale(1.5);
-            opacity: 0;
-        }
-    }
-    
-    /* Loading spinner */
-    #loading-spinner {
-        transition: opacity 0.3s ease;
-    }
-    
-    /* Mobile optimizations */
-    @media (max-width: 768px) {
-        .card-body.p-0 {
-            height: 300px !important;
-        }
-        .btn-group .btn {
-            font-size: 0.8rem;
-            padding: 0.25rem 0.5rem;
-        }
-        .truck-marker {
-            width: 32px;
-            height: 32px;
-        }
-        .truck-icon {
-            width: 24px;
-            height: 24px;
-        }
-        .truck-icon i {
-            font-size: 12px;
-        }
-        .truck-pulse {
-            width: 32px;
-            height: 32px;
-        }
-    }
-    
-    /* Leaflet control adjustments */
-    .leaflet-top, .leaflet-bottom {
-        z-index: 400;
-    }
-    .leaflet-control-geocoder {
-        border-radius: 4px;
-    }
-    
-    /* Custom popup styles */
-    .leaflet-popup-content {
-        margin: 12px 15px;
-        min-width: 200px;
-    }
-</style>
 {% endblock %}
