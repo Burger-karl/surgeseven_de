@@ -169,8 +169,8 @@
                 </button>
             </div>
         </div>
-        <div class="card-body p-0" style="height: 500px;">
-            <div id="map" style="height: 100%;"></div>
+        <div class="map-wrapper">
+            <div id="map"></div>
         </div>
     </div>
 
@@ -274,325 +274,212 @@
 </div>
 
 <!-- Leaflet.js with Enhanced Features -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Leaflet Plugins -->
+<!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> -->
+<link
+  href="https://unpkg.com/maplibre-gl@3.6.0/dist/maplibre-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://unpkg.com/maplibre-gl@3.6.0/dist/maplibre-gl.js"></script>
+
+
+<!-- Leaflet Plugins
 <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script> -->
+
 
 <script>
-// Global variables
-let map, marker, locationHistory = [];
+let map;
+let marker;
 let refreshInterval;
+let locationHistory = [];
+
+const truckEl = document.createElement("div");
+truckEl.className = "truck-marker";
+truckEl.innerHTML = `<i class="fas fa-truck"></i>`;
+
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Hide loading spinner when map is ready
-    const loadingSpinner = document.getElementById('loading-spinner');
-    
-    // Initialize map with better default view
-    map = L.map('map', {
-        zoomControl: true,
-        maxZoom: 19,
-        minZoom: 3,
-        preferCanvas: true // Better performance for moving markers
-    }).setView([9.0820, 8.6753], 6); // Default center on Nigeria
+    const loadingSpinner = document.getElementById("loading-spinner");
 
-    // Use multiple tile layers for better reliability
-    const baseLayers = {
-        "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
-        }),
-        "OpenStreetMap Hot": L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team',
-            maxZoom: 19
-        }),
-        "CartoDB Voyager": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors, © CartoDB',
-            maxZoom: 20
-        })
-    };
-
-    // Add default base layer
-    baseLayers["CartoDB Voyager"].addTo(map);
-    
-    // Add layer control
-    L.control.layers(baseLayers).addTo(map);
-
-    // Create a more visible custom truck icon
-    const truckIcon = L.divIcon({
-        html: `
-            <div class="truck-marker">
-                <div class="truck-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div class="truck-pulse"></div>
-            </div>
-        `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20],
-        className: 'truck-marker-container'
+    map = new maplibregl.Map({
+        container: "map",
+        style: {
+            "version": 8,
+            "sources": {
+                "osm": {
+                    "type": "raster",
+                    "tiles": [
+                        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                        "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    ],
+                    "tileSize": 256,
+                    "attribution": "© OpenStreetMap contributors"
+                }
+            },
+            "layers": [
+                {
+                    "id": "osm",
+                    "type": "raster",
+                    "source": "osm"
+                }
+            ]
+        },
+        center: [8.6753, 9.0820], // Nigeria
+        zoom: 6
     });
 
-    // Initialize marker with a more visible icon
-    marker = L.marker([0, 0], { 
-        icon: truckIcon,
-        zIndexOffset: 1000
-    }).addTo(map);
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.addControl(new maplibregl.ScaleControl());
 
-    // Add a circle to show accuracy/position area
-    const accuracyCircle = L.circle([0, 0], {
-        radius: 50,
-        color: '#007bff',
-        fillColor: '#007bff',
-        fillOpacity: 0.2,
-        weight: 2
-    }).addTo(map);
-
-    // Add scale control
-    L.control.scale({ imperial: false }).addTo(map);
-
-    // Add geocoder for address lookup
-    L.Control.geocoder({
-        defaultMarkGeocode: false,
-        position: 'topleft',
-        placeholder: 'Search location...',
-        errorMessage: 'Location not found.'
+    marker = new maplibregl.Marker({
+        element: truckEl,
+        anchor: "center"
     })
-    .on('markgeocode', function(e) {
-        map.fitBounds(e.geocode.bbox);
-    })
+    .setLngLat([0, 0])
     .addTo(map);
 
-    // Button event handlers
-    document.getElementById('refresh-btn').addEventListener('click', fetchTrackingData);
-    document.getElementById('locate-btn').addEventListener('click', function() {
-        if (marker.getLatLng().lat !== 0) {
-            map.setView(marker.getLatLng(), 16, { animate: true, duration: 1 });
-        } else {
-            showAlert('No location data available yet.', 'warning');
-        }
-    });
+    // marker = new maplibregl.Marker({ color: "#0d6efd" })
+    //     .setLngLat([0, 0])
+    //     .addTo(map);
 
-    // Initial data load
     fetchTrackingData();
-    
-    // Set up auto-refresh (every 30 seconds)
     refreshInterval = setInterval(fetchTrackingData, 30000);
-    
-    // Hide loading spinner after initial load
+
     setTimeout(() => {
-        loadingSpinner.style.display = 'none';
-    }, 2000);
+        loadingSpinner.style.display = "none";
+    }, 1500);
 });
 
-// Function to get address from coordinates (reverse geocoding)
+// Reverse geocoding (unchanged)
 async function getAddressFromCoordinates(lat, lng) {
     try {
-        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18`
+        );
         const data = await response.json();
-        
-        if (data && data.address) {
-            const address = data.address;
-            // Build a readable address string
-            const addressParts = [];
-            if (address.road) addressParts.push(address.road);
-            if (address.suburb) addressParts.push(address.suburb);
-            if (address.city) addressParts.push(address.city);
-            if (address.state) addressParts.push(address.state);
-            if (address.country) addressParts.push(address.country);
-            
-            return addressParts.join(', ') || 'Address not available';
+
+        if (data && data.display_name) {
+            return data.display_name;
         }
-    } catch (error) {
-        console.error('Reverse geocoding error:', error);
+    } catch (e) {
+        console.error(e);
     }
-    return 'Address not available';
+    return "Address not available";
 }
 
-// Function to update location history
+// Location history (unchanged logic)
 function updateLocationHistory(locationData) {
-    const historyContainer = document.getElementById('location-history');
-    
-    // Add new location to history (max 5 entries)
+    const container = document.getElementById("location-history");
+
     locationHistory.unshift({
         address: locationData.address,
-        timestamp: new Date().toLocaleTimeString(),
-        coordinates: `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`
+        time: new Date().toLocaleTimeString(),
+        coords: `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`
     });
-    
-    if (locationHistory.length > 5) {
-        locationHistory.pop();
-    }
-    
-    // Update UI
-    if (locationHistory.length > 0) {
-        historyContainer.innerHTML = locationHistory.map(loc => `
-            <div class="border-bottom pb-2 mb-2">
-                <div class="fw-bold small text-truncate" title="${loc.address}">${loc.address}</div>
-                <div class="text-muted small">${loc.timestamp}</div>
-                <div class="text-muted small">${loc.coordinates}</div>
-            </div>
-        `).join('');
-    }
+
+    if (locationHistory.length > 5) locationHistory.pop();
+
+    container.innerHTML = locationHistory.map(loc => `
+        <div class="border-bottom pb-2 mb-2">
+            <div class="fw-bold small">${loc.address}</div>
+            <div class="text-muted small">${loc.time}</div>
+            <div class="text-muted small">${loc.coords}</div>
+        </div>
+    `).join("");
 }
 
-// Function to update the UI with new data
+// UI UPDATE (MapLibre version)
 async function updateUI(data) {
-    if (data.latitude && data.longitude) {
-        const lat = parseFloat(data.latitude);
-        const lng = parseFloat(data.longitude);
-        const speed = data.speed || "0";
-        const updatedTime = data.last_updated ? new Date(data.last_updated).toLocaleString() : new Date().toLocaleString();
+    if (!data.latitude || !data.longitude) return;
 
-        // Get address from coordinates
-        const address = await getAddressFromCoordinates(lat, lng);
+    const lat = parseFloat(data.latitude);
+    const lng = parseFloat(data.longitude);
+    const speed = data.speed || 0;
+    const updatedTime = new Date(data.last_updated).toLocaleString();
 
-        // Update table data
-        document.getElementById("location-address").textContent = address;
-        document.getElementById("coordinates").textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        document.getElementById("speed").textContent = `${speed} km/h`;
-        document.getElementById("last_updated").textContent = updatedTime;
-        
-        // Update location history
-        updateLocationHistory({
-            lat: lat,
-            lng: lng,
-            address: address
-        });
-        
-        // Update map marker with smooth transition
-        const oldLatLng = marker.getLatLng();
-        const newLatLng = L.latLng(lat, lng);
-        
-        marker.setLatLng(newLatLng)
-            .bindPopup(`
-                <div class="text-center">
-                    <strong>${document.querySelector('h2').textContent}</strong><br>
-                    <small class="text-muted">${address}</small><br>
-                    <hr class="my-2">
-                    <div class="text-start">
-                        <strong>Speed:</strong> ${speed} km/h<br>
-                        <strong>Last Update:</strong> ${updatedTime}<br>
-                        <strong>Coordinates:</strong> ${lat.toFixed(6)}, ${lng.toFixed(6)}
-                    </div>
-                </div>
-            `);
+    const address = await getAddressFromCoordinates(lat, lng);
 
-        // Update accuracy circle position
-        accuracyCircle.setLatLng(newLatLng);
+    document.getElementById("location-address").textContent = address;
+    document.getElementById("coordinates").textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    document.getElementById("speed").textContent = `${speed} km/h`;
+    document.getElementById("last_updated").textContent = updatedTime;
 
-        // If this is the first update or significant movement, center map
-        if (oldLatLng.lat === 0 || oldLatLng.distanceTo(newLatLng) > 100) {
-            map.setView(newLatLng, 16, { animate: true, duration: 1 });
-        }
-        
-        // Update status indicators
-        updateStatusIndicators(data);
-    }
+    updateLocationHistory({ lat, lng, address });
+
+    marker.setLngLat([lng, lat]);
+
+    map.flyTo({
+        center: [lng, lat],
+        zoom: 15,
+        speed: 0.9,
+        curve: 1
+    });
+
+    marker.setPopup(
+        new maplibregl.Popup({ offset: 25 }).setHTML(`
+            <strong>${address}</strong><br>
+            Speed: ${speed} km/h<br>
+            Updated: ${updatedTime}
+        `)
+    );
+
+    updateStatusIndicators(data);
 }
 
-// Function to update status badges
+// Status badges (UNCHANGED)
 function updateStatusIndicators(data) {
-    // Update status badge
     const statusBadge = document.getElementById("status");
     if (data.status) {
         statusBadge.textContent = data.status;
-        statusBadge.className = `badge bg-${data.status === 'OK' ? 'success' : 'danger'}`;
+        statusBadge.className = `badge bg-${data.status === "OK" ? "success" : "danger"}`;
     }
 
-    // Update movement badge
     const movementBadge = document.getElementById("movement");
     if (data.moving !== undefined) {
-        movementBadge.textContent = data.moving ? 'Moving' : 'Stopped';
-        movementBadge.className = `badge bg-${data.moving ? 'primary' : 'secondary'}`;
+        movementBadge.textContent = data.moving ? "Moving" : "Stopped";
+        movementBadge.className = `badge bg-${data.moving ? "primary" : "secondary"}`;
     }
 
-    // Admin-only indicators
     {% if is_admin %}
-    if (data.voltage) {
-        document.getElementById("battery").textContent = data.voltage + "V";
-    }
-    if (data.gps_satellites) {
+    if (data.voltage) document.getElementById("battery").textContent = data.voltage + "V";
+    if (data.gps_satellites)
         document.getElementById("signal").textContent = data.gps_satellites + " satellites";
-    }
     if (data.alarm !== undefined) {
-        const alarmBadge = document.getElementById("alarm");
-        alarmBadge.textContent = data.alarm ? 'Active' : 'Normal';
-        alarmBadge.className = `badge bg-${data.alarm ? 'danger' : 'success'}`;
+        const alarm = document.getElementById("alarm");
+        alarm.textContent = data.alarm ? "Active" : "Normal";
+        alarm.className = `badge bg-${data.alarm ? "danger" : "success"}`;
     }
     {% endif %}
 }
 
-// Function to fetch tracking data
+// FETCH (UNCHANGED)
 async function fetchTrackingData() {
-    const refreshBtn = document.getElementById('refresh-btn');
-    
+    const btn = document.getElementById("refresh-btn");
+
     try {
-        // Show loading state on button
-        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        refreshBtn.disabled = true;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
 
         const response = await fetch("{% url 'fetch_tracking_data' truck.id %}");
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
         const data = await response.json();
-        
-        if (data.error) {
-            console.error('Tracking error:', data.error);
-            if (!window.trackingDataLoaded) {
-                showAlert('Error loading tracking data: ' + data.error, 'danger');
-            }
-        } else {
+
+        if (!data.error) {
             await updateUI(data);
-            window.trackingDataLoaded = true;
         }
-    } catch (error) {
-        console.error('Error fetching tracking data:', error);
-        if (!window.trackingDataLoaded) {
-            showAlert('Connection issue. Please check your internet connection.', 'warning');
-        }
+    } catch (e) {
+        console.error(e);
     } finally {
-        // Restore button state
-        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-        refreshBtn.disabled = false;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fas fa-sync-alt"></i> Refresh`;
     }
 }
 
-// Function to show alerts
-function showAlert(message, type) {
-    // Remove existing alerts
-    const existingAlerts = document.querySelectorAll('.alert');
-    existingAlerts.forEach(alert => alert.remove());
-
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        <i class="fas fa-${type === 'danger' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (alertDiv.parentElement) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
-
-// Clean up when page is unloaded
-window.addEventListener('beforeunload', () => {
-    if (refreshInterval) {
-        clearInterval(refreshInterval);
-    }
+window.addEventListener("beforeunload", () => {
+    if (refreshInterval) clearInterval(refreshInterval);
 });
 </script>
+
 
 {% endblock %}

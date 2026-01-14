@@ -3255,9 +3255,7 @@ section {
 
 
 
-    #map {
-        border-radius: 4px;
-    }
+    
     .card {
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         border: 1px solid rgba(0, 0, 0, 0.125);
@@ -3376,3 +3374,50 @@ section {
         margin: 12px 15px;
         min-width: 200px;
     }
+
+
+#map {
+    height: 60vh;
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.15);
+}
+@media (max-width: 768px) {
+    #map {
+        height: 45vh;
+    }
+}
+
+.truck-marker {
+    width: 42px;
+    height: 42px;
+    background: #0d6efd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+    border: 3px solid #fff;
+}
+
+.truck-marker i {
+    color: #fff;
+    font-size: 18px;
+}
+
+/* Optional pulse */
+.truck-marker::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(13,110,253,.4);
+    animation: pulse 2s infinite;
+    z-index: -1;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: .6; }
+    100% { transform: scale(1.6); opacity: 0; }
+}

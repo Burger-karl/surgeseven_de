@@ -10,6 +10,8 @@ import dj_database_url
 from datetime import timedelta
 import redis
 from urllib.parse import urlparse
+from decouple import config
+
 
 load_dotenv()
 
